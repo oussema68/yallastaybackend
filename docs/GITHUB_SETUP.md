@@ -52,7 +52,11 @@ coverage report
 After first deploy with Postgres, run once from Railway shell (folder `yallastay`):
 
 ```bash
-python manage.py bootstrap_demo
+cd yallastay
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
 ```
 
-Full checklist: [`DEMO_PRESENTATION.md`](DEMO_PRESENTATION.md).
+**Service root:** set Railway **Root Directory** to `yallastay`, *or* use repo-root `Procfile` / `railway.toml` (they `cd yallastay` before `migrate` / `collectstatic`). If release never runs, migrations and `staticfiles/` stay missing.
+
+Optional demo seeds: [`DEMO_PRESENTATION.md`](DEMO_PRESENTATION.md).
