@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 
 def frontend_base_url() -> str:
-    """Trailing slashes stripped; default only when settings left blank."""
-    return str(getattr(settings, "FRONTEND_URL", "") or "http://localhost:3000").rstrip(
-        "/"
-    )
+    """Trailing slashes stripped; requires FRONTEND_URL in settings."""
+    url = str(getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
+    if not url:
+        raise ImproperlyConfigured(
+            "FRONTEND_URL is not configured. Set it in .env (see .env.example)."
+        )
+    return url

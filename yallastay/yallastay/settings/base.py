@@ -250,9 +250,9 @@ if _use_s3_media():
         },
     }
 
-# URLs (for email links, etc.) - production requires FRONTEND_URL (see prod.py)
-FRONTEND_URL = env_str("FRONTEND_URL") or "http://localhost:3000"
-BACKEND_URL = env_str("BACKEND_URL") or "http://localhost:8000"
+# URLs (for email links, etc.) — dev/prod modules set required values from .env
+FRONTEND_URL = env_str("FRONTEND_URL")
+BACKEND_URL = env_str("BACKEND_URL")
 
 # Email (transactional - see ``emails`` app)
 DEFAULT_FROM_EMAIL = env_str("DEFAULT_FROM_EMAIL") or "noreply@yallastay.local"

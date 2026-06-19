@@ -23,8 +23,11 @@ yallastay/media/
 yallastay/staticfiles/
 # Environment (never commit real secrets; use .env.example for variable names only)
 .env
-**/.env
+.env.*
+!.env.example
 .env.local
+.env.*.local
+**/.env
 **/.env.local
 
 # Coverage / profiling (tools in requirements / local runs)
