@@ -1,0 +1,44 @@
+# Node (frontend lives in sibling repo; ignore accidental npm installs under ``yallastay/``)
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+venv/
+env/
+.venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Django / local DB
+*.log
+*.sqlite3
+*.sqlite3-journal
+# MEDIA_ROOT / STATIC_ROOT next to manage.py; uploads & collectstatic are local/deploy artifacts only
+yallastay/media/
+yallastay/staticfiles/
+# Environment (never commit real secrets; use .env.example for variable names only)
+.env
+**/.env
+.env.local
+**/.env.local
+
+# Coverage / profiling (tools in requirements / local runs)
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+
+# Optional: screenshot / automation output if generated from this repo
+/screenshots/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

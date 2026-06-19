@@ -1,0 +1,9 @@
+# Railway: service root = this folder (manage.py). Start process = Procfile ``web``.
+# Release runs before new containers serve traffic (migrate + static).
+# https://docs.railway.com/reference/config-as-code
+
+[build]
+builder = "nixpacks"
+
+[deploy]
+releaseCommand = "python manage.py migrate --noinput && python manage.py collectstatic --noinput"
