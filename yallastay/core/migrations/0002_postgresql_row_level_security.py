@@ -347,6 +347,12 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("core", "0001_initial"),
+        ("bookings", "0003_reservation_move_in"),
+        ("listings", "0003_listing_leased_flag"),
+        ("notifications", "0004_esign_and_notification_esign"),
+        ("reports", "0001_initial"),
+        ("reviews", "0001_initial"),
+        ("roommates", "0001_initial"),
         ("esign", "0004_renter_lister_signature_images"),
     ]
 
