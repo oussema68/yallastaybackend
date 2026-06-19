@@ -50,8 +50,14 @@ DATABASES = {
 # Hosts & CORS
 _raw_hosts = env_str("ALLOWED_HOSTS")
 ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(",") if h.strip()]
+_railway_public = env_str("RAILWAY_PUBLIC_DOMAIN")
+if _railway_public and _railway_public not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_railway_public)
 if not ALLOWED_HOSTS:
-    raise ValueError("ALLOWED_HOSTS must be set in production (comma-separated).")
+    raise ValueError(
+        "ALLOWED_HOSTS must be set in production (comma-separated), "
+        "or deploy on Railway with RAILWAY_PUBLIC_DOMAIN."
+    )
 
 if not BACKEND_URL and ALLOWED_HOSTS:
     BACKEND_URL = f"https://{ALLOWED_HOSTS[0]}"
