@@ -53,6 +53,7 @@ Canonical technical and product docs for the Django backend (`yallastay/`). The 
 | [`testing/testing-report.md`](./testing/testing-report.md) | What test types exist (Django, Vitest, Playwright, manual), gaps, and stakeholder wording. |
 | [`GITHUB_SETUP.md`](./GITHUB_SETUP.md) | First-time Git init, push to GitHub, CI jobs, local parity commands. |
 | [`DEMO_PRESENTATION.md`](./DEMO_PRESENTATION.md) | Live demo / Railway checklist, demo accounts, presenter script. |
+| [`RESEND_SETUP.md`](./RESEND_SETUP.md) | Production email via Resend (`demo@yallastay.ae`), Railway env vars. |
 | [`DEMO_GAP_REVIEW.md`](./DEMO_GAP_REVIEW.md) | Demo vs product gaps; aligns with `seed_demo` and presentation script. |
 
 ### Payments

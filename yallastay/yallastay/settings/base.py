@@ -256,6 +256,7 @@ BACKEND_URL = env_str("BACKEND_URL")
 
 # Email (transactional - see ``emails`` app)
 DEFAULT_FROM_EMAIL = env_str("DEFAULT_FROM_EMAIL") or "noreply@yallastay.local"
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 # In-app messages from "Yallastay Team" (must not be a real signup email)
 YALLASTAY_TEAM_USER_EMAIL = env_str("YALLASTAY_TEAM_USER_EMAIL") or (
     "yallastay-team@internal.yallastay"
@@ -263,6 +264,14 @@ YALLASTAY_TEAM_USER_EMAIL = env_str("YALLASTAY_TEAM_USER_EMAIL") or (
 EMAIL_BACKEND = env_str("EMAIL_BACKEND") or (
     "django.core.mail.backends.console.EmailBackend"
 )
+# SMTP (production: Resend — see docs/RESEND_SETUP.md and .env.example)
+EMAIL_HOST = env_str("EMAIL_HOST")
+EMAIL_PORT = env_int("EMAIL_PORT", 587, min_value=1, max_value=65535)
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL", False)
+EMAIL_HOST_USER = env_str("EMAIL_HOST_USER") or "resend"
+# RESEND_API_KEY is an alias for EMAIL_HOST_PASSWORD (Resend SMTP password = API key).
+EMAIL_HOST_PASSWORD = env_str("EMAIL_HOST_PASSWORD") or env_str("RESEND_API_KEY")
 
 # Internal verification team inbox (document checklist notifications)
 VERIFICATION_TEAM_EMAIL = env_str("VERIFICATION_TEAM_EMAIL")

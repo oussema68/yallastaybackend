@@ -237,15 +237,16 @@ class AuthViewTests(APITestCase):
     )
     def test_register_queues_verification_email_when_configured(self):
         before = EmailMessage.objects.count()
-        response = self.client.post(
-            "/api/auth/register/",
-            {
-                "email": "verifyflow@example.com",
-                "password": "TestPass123!",
-                "role": "tenant",
-            },
-            format="json",
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(
+                "/api/auth/register/",
+                {
+                    "email": "verifyflow@example.com",
+                    "password": "TestPass123!",
+                    "role": "tenant",
+                },
+                format="json",
+            )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(EmailMessage.objects.count(), before + 1)
         last = EmailMessage.objects.order_by("-id").first()

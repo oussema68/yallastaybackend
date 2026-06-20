@@ -25,9 +25,16 @@ ALLOWED_HOSTS=your-api-xxxx.up.railway.app
 FRONTEND_URL=https://your-spa-xxxx.up.railway.app
 CORS_ALLOWED_ORIGINS=https://your-spa-xxxx.up.railway.app
 PAYMENT_PROVIDER=stub
+DEFAULT_FROM_EMAIL=demo@yallastay.ae
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.resend.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=resend
+RESEND_API_KEY=re_your_key_here
 ```
 
-Add **`DATABASE_URL`** / use Railway’s Postgres plugin (**`DATABASE_PRIVATE_URL`** is also supported). Optional explicit public API base:
+Add **`DATABASE_URL`** / use Railway’s Postgres plugin (**`DATABASE_PRIVATE_URL`** is also supported). Resend setup: [`RESEND_SETUP.md`](RESEND_SETUP.md). Optional explicit public API base:
 
 ```bash
 BACKEND_URL=https://your-api-xxxx.up.railway.app

@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.conf import settings
+from django.db import transaction
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -78,14 +79,20 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        send_email_verification(user)
-        notify_user(
-            user,
-            "welcome",
-            "Welcome to Yallastay",
-            "Explore listings, verify your Emirates ID, and find your next home in Dubai.",
-            link="/dashboard",
-        )
+        user_id = user.pk
+
+        def after_signup():
+            signup_user = User.objects.get(pk=user_id)
+            send_email_verification(signup_user)
+            notify_user(
+                signup_user,
+                "welcome",
+                "Welcome to Yallastay",
+                "Explore listings, verify your Emirates ID, and find your next home in Dubai.",
+                link="/dashboard",
+            )
+
+        transaction.on_commit(after_signup)
         refresh = RefreshToken.for_user(user)
         return Response(
             {

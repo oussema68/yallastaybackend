@@ -6,6 +6,7 @@ import logging
 from urllib.parse import urlencode
 
 from django.conf import settings
+from django.db import transaction
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
@@ -44,12 +45,14 @@ def send_email_verification(user) -> None:
         "verification_link": build_verification_link(user),
     }
     try:
-        send_transactional_email_from_template(
-            user.email,
-            "email_verification",
-            ctx,
-            user=user,
-        )
+        # Nested atomic = savepoint so a template/DB error cannot abort the outer request txn.
+        with transaction.atomic():
+            send_transactional_email_from_template(
+                user.email,
+                "email_verification",
+                ctx,
+                user=user,
+            )
     except ValueError as e:
         logger.warning("email_verification template missing: %s", e)
     except Exception:
