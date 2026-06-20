@@ -80,11 +80,15 @@ cd yallastay
 
 python manage.py migrate --noinput
 python manage.py migrate --check
+python manage.py showmigrations token_blacklist
 python manage.py showmigrations
 python manage.py collectstatic --noinput
 ```
 
+**`showmigrations token_blacklist`**: must show `[X] 0001_initial`.  
 **`showmigrations`**: every line must start with `[X]`. Any `[ ]` = still broken.
+
+**Procfile** also runs `migrate` on every container start (backup if Release phase is skipped).
 
 Apps that must be applied (includes JWT blacklist):
 

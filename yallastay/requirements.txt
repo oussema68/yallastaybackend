@@ -1,0 +1,2 @@
+# When Railway Root Directory is ``yallastay/``, Railpack installs from this file.
+-r ../requirements.txt
