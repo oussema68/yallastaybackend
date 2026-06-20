@@ -219,3 +219,43 @@ class LifestyleSubscriptionPreference(models.Model):
 
     def __str__(self):
         return f"Preferences for subscription {self.subscription_id}"
+
+
+class LifestyleInterestFeedback(models.Model):
+    """Coming-soon lifestyle page: what services renters want before launch."""
+
+    SERVICE_CHOICES = [
+        ("cleaning", "Regular home cleaning"),
+        ("deep_clean", "Deep clean / move-in cleaning"),
+        ("utilities", "Utility setup (DEWA, internet, cooling)"),
+        ("gym", "Gym or fitness access"),
+        ("laundry", "Laundry & dry cleaning"),
+        ("groceries", "Grocery or meal delivery"),
+        ("maintenance", "Maintenance & handyman"),
+        ("concierge", "Move-in concierge & orientation"),
+        ("furniture", "Furniture & home essentials"),
+        ("other", "Something else"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="lifestyle_interest_feedback",
+    )
+    email = models.EmailField(blank=True)
+    selected_services = models.JSONField(default=list, blank=True)
+    priority = models.CharField(max_length=32, blank=True)
+    other_detail = models.CharField(max_length=500, blank=True)
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Lifestyle interest feedback"
+        verbose_name_plural = "Lifestyle interest feedback"
+
+    def __str__(self):
+        who = self.email or (self.user.email if self.user_id else "Anonymous")
+        return f"Lifestyle interest from {who} ({self.created_at:%Y-%m-%d})"

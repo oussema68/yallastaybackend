@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    LifestyleInterestFeedbackCreateView,
     LifestyleManagementOverviewView,
     LifestylePartnerListView,
     LifestylePlanListView,
@@ -37,5 +38,10 @@ urlpatterns = [
         "lifestyle-subscriptions/<int:pk>/preferences/",
         LifestyleSubscriptionPreferencesView.as_view(),
         name="lifestyle-subscription-preferences",
+    ),
+    path(
+        "lifestyle-interest/",
+        LifestyleInterestFeedbackCreateView.as_view(),
+        name="lifestyle-interest-create",
     ),
 ]

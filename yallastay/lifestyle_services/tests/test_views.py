@@ -365,3 +365,40 @@ class LifestyleViewTests(APITestCase):
             f"/api/lifestyle-subscriptions/{sub.id}/preferences/"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class LifestyleInterestFeedbackTests(APITestCase):
+    def test_guest_can_submit_interest(self):
+        response = self.client.post(
+            "/api/lifestyle-interest/",
+            {
+                "selected": ["cleaning", "utilities"],
+                "priority": "utilities",
+                "comment": "Need DEWA help on move-in.",
+                "email": "guest@example.com",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["selected_services"], ["cleaning", "utilities"])
+        self.assertEqual(response.data["email"], "guest@example.com")
+
+    def test_authenticated_tenant_uses_account_email(self):
+        user = User.objects.create_user(email="tenant@example.com", password="Pass123!")
+        UserProfile.objects.create(user=user, role="tenant")
+        self.client.force_authenticate(user=user)
+        response = self.client.post(
+            "/api/lifestyle-interest/",
+            {"selected": ["gym"], "priority": "gym"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["email"], "tenant@example.com")
+
+    def test_other_requires_detail(self):
+        response = self.client.post(
+            "/api/lifestyle-interest/",
+            {"selected": ["other"]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

@@ -2,7 +2,7 @@ from django.db.models import Count, Prefetch
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import BasePermission, IsAuthenticated
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -10,6 +10,7 @@ from payments.checkout import initiate_checkout_for_payment
 from payments.models import Payment
 
 from .models import (
+    LifestyleInterestFeedback,
     LifestylePartner,
     LifestylePlan,
     LifestylePlanBenefit,
@@ -18,6 +19,7 @@ from .models import (
     LifestyleSubscriptionPreference,
 )
 from .serializers import (
+    LifestyleInterestFeedbackSerializer,
     LifestylePartnerSerializer,
     LifestylePlanSerializer,
     LifestyleSubscriptionManagementSerializer,
@@ -333,3 +335,23 @@ class LifestyleSubscriptionPreferencesView(APIView):
             "gym_partner"
         ).get(pk=pref.pk)
         return Response(LifestyleSubscriptionPreferenceSerializer(pref).data)
+
+
+class LifestyleInterestFeedbackCreateView(APIView):
+    """
+    POST: Save coming-soon lifestyle interest (guests or authenticated tenants).
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = LifestyleInterestFeedbackSerializer(
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        feedback = serializer.save()
+        return Response(
+            LifestyleInterestFeedbackSerializer(feedback).data,
+            status=status.HTTP_201_CREATED,
+        )

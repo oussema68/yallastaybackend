@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from accounts.models import UAEIDVerification
 from .models import (
+    LifestyleInterestFeedback,
     LifestylePartner,
     LifestylePlan,
     LifestylePlanBenefit,
@@ -247,3 +248,72 @@ class LifestyleSubscriptionCreateSerializer(serializers.Serializer):
                 {"end_date": "End date must be after start date."}
             )
         return attrs
+
+
+class LifestyleInterestFeedbackSerializer(serializers.ModelSerializer):
+    selected = serializers.ListField(
+        child=serializers.CharField(max_length=32),
+        required=False,
+        allow_empty=True,
+        write_only=True,
+    )
+
+    class Meta:
+        model = LifestyleInterestFeedback
+        fields = [
+            "id",
+            "selected",
+            "selected_services",
+            "priority",
+            "other_detail",
+            "comment",
+            "email",
+            "created_at",
+        ]
+        read_only_fields = ["id", "selected_services", "created_at"]
+        extra_kwargs = {
+            "priority": {"required": False, "allow_blank": True},
+            "other_detail": {"required": False, "allow_blank": True},
+            "comment": {"required": False, "allow_blank": True},
+            "email": {"required": False, "allow_blank": True},
+        }
+
+    def validate_selected(self, value):
+        allowed = {c[0] for c in LifestyleInterestFeedback.SERVICE_CHOICES}
+        invalid = [v for v in value if v not in allowed]
+        if invalid:
+            raise serializers.ValidationError(f"Unknown service id(s): {', '.join(invalid)}")
+        return value
+
+    def validate_priority(self, value):
+        if not value:
+            return ""
+        allowed = {c[0] for c in LifestyleInterestFeedback.SERVICE_CHOICES}
+        if value not in allowed:
+            raise serializers.ValidationError("Invalid priority service id.")
+        return value
+
+    def validate(self, attrs):
+        selected = attrs.pop("selected", [])
+        attrs["selected_services"] = selected
+        priority = attrs.get("priority") or ""
+        comment = (attrs.get("comment") or "").strip()
+        other_detail = (attrs.get("other_detail") or "").strip()
+        if not selected and not priority and not comment and not other_detail:
+            raise serializers.ValidationError(
+                "Provide at least one selected service, a priority, a comment, or other detail."
+            )
+        if "other" in selected and not other_detail:
+            raise serializers.ValidationError(
+                {"other_detail": "Describe the other service you have in mind."}
+            )
+        return attrs
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated:
+            validated_data["user"] = user
+            if not validated_data.get("email"):
+                validated_data["email"] = user.email or ""
+        return super().create(validated_data)

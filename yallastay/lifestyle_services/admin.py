@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import (
+    LifestyleInterestFeedback,
     LifestylePartner,
     LifestylePlan,
     LifestylePlanBenefit,
@@ -69,3 +70,11 @@ class LifestyleSubscriptionPreferenceAdmin(admin.ModelAdmin):
 @admin.register(LifestyleSubscription)
 class LifestyleSubscriptionAdmin(admin.ModelAdmin):
     list_display = ("user", "plan", "reservation", "start_date", "end_date", "status")
+
+
+@admin.register(LifestyleInterestFeedback)
+class LifestyleInterestFeedbackAdmin(admin.ModelAdmin):
+    list_display = ("email", "user", "priority", "created_at")
+    list_filter = ("priority", "created_at")
+    search_fields = ("email", "comment", "other_detail", "user__email")
+    readonly_fields = ("created_at",)
