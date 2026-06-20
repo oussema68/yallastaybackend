@@ -10,7 +10,6 @@ from payments.checkout import initiate_checkout_for_payment
 from payments.models import Payment
 
 from .models import (
-    LifestyleInterestFeedback,
     LifestylePartner,
     LifestylePlan,
     LifestylePlanBenefit,

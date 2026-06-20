@@ -282,7 +282,9 @@ class LifestyleInterestFeedbackSerializer(serializers.ModelSerializer):
         allowed = {c[0] for c in LifestyleInterestFeedback.SERVICE_CHOICES}
         invalid = [v for v in value if v not in allowed]
         if invalid:
-            raise serializers.ValidationError(f"Unknown service id(s): {', '.join(invalid)}")
+            raise serializers.ValidationError(
+                f"Unknown service id(s): {', '.join(invalid)}"
+            )
         return value
 
     def validate_priority(self, value):
