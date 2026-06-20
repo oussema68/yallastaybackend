@@ -1,8 +1,6 @@
 # Repo root config when Railway service root is ``yallastay_backend`` (not ``yallastay/``).
 # Django lives in ``yallastay/`` (manage.py). See also ``yallastay/railway.toml`` if root dir is ``yallastay``.
-
-[build]
-builder = "nixpacks"
+# Builder: Railway default (Railpack). Do not pin nixpacks here.
 
 [deploy]
-releaseCommand = "cd yallastay && python manage.py migrate --noinput && python manage.py collectstatic --noinput"
+releaseCommand = "cd yallastay && python manage.py migrate --noinput && python manage.py migrate --check && python manage.py collectstatic --noinput"
