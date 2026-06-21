@@ -1,1 +1,1 @@
-web: python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn yallastay.wsgi:application --bind 0.0.0.0:$PORT
+web: gunicorn yallastay.wsgi:application -c gunicorn.conf.py --bind 0.0.0.0:$PORT

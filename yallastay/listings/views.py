@@ -194,6 +194,19 @@ class ListingViewSet(viewsets.ModelViewSet):
         # Public browse + authenticated search (no mine): hide rented / fully signed leases
         return _public_browse_queryset(qs)
 
+    def list(self, request, *args, **kwargs):
+        """Plain array response (unpaginated). Optional ``?limit=N`` caps rows so light
+        callers (e.g. the homepage featured strip) don't fetch every listing."""
+        queryset = self.filter_queryset(self.get_queryset())
+        limit = request.query_params.get("limit")
+        if limit:
+            try:
+                queryset = queryset[: max(1, min(int(limit), 60))]
+            except (TypeError, ValueError):
+                pass
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         serializer.save(listed_by=self.request.user)
 
