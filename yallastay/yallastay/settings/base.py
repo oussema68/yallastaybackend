@@ -283,6 +283,22 @@ elif _email_host_user:
     EMAIL_HOST_PASSWORD = env_str("EMAIL_HOST_PASSWORD")
     # Fail fast on a blocked/slow SMTP host instead of hanging a gunicorn worker.
     EMAIL_TIMEOUT = env_int("EMAIL_TIMEOUT", 15, min_value=1, max_value=120)
+    # Railway containers have no IPv6 egress, so plain SMTP connects hang until timeout.
+    # Force IPv4 there. Default: on when on Railway; override with EMAIL_SMTP_USE_IPV4.
+    _ipv4 = (env_str("EMAIL_SMTP_USE_IPV4") or "").lower()
+    _on_railway = bool(
+        env_str("RAILWAY_ENVIRONMENT_ID")
+        or env_str("RAILWAY_ENVIRONMENT_NAME")
+        or env_str("RAILWAY_SERVICE_ID")
+    )
+    if _ipv4 in ("0", "false", "no", "off"):
+        _use_ipv4_smtp = False
+    elif _ipv4 in ("1", "true", "yes", "on"):
+        _use_ipv4_smtp = True
+    else:
+        _use_ipv4_smtp = _on_railway
+    if _use_ipv4_smtp:
+        EMAIL_BACKEND = "yallastay.mail_backends.IPv4EmailBackend"
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 

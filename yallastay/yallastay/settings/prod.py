@@ -92,20 +92,3 @@ SECURE_HSTS_SECONDS = env_int(
 )
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", True)
 SECURE_HSTS_PRELOAD = env_bool("SECURE_HSTS_PRELOAD", False)
-
-# Email: prefer the Resend HTTPS API (set RESEND_API_KEY). If you fall back to SMTP,
-# Railway containers have no IPv6 egress, so force IPv4 to avoid hanging connects.
-# Override with EMAIL_SMTP_USE_IPV4=false if your host does route IPv6.
-_smtp_ipv4 = (env_str("EMAIL_SMTP_USE_IPV4") or "").lower()
-if _smtp_ipv4 in ("0", "false", "no", "off"):
-    _use_ipv4_smtp = False
-elif _smtp_ipv4 in ("1", "true", "yes", "on"):
-    _use_ipv4_smtp = True
-else:
-    _use_ipv4_smtp = bool(
-        env_str("RAILWAY_ENVIRONMENT_ID")
-        or env_str("RAILWAY_ENVIRONMENT_NAME")
-        or env_str("RAILWAY_SERVICE_ID")
-    )
-if _use_ipv4_smtp and EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend":
-    EMAIL_BACKEND = "yallastay.mail_backends.IPv4EmailBackend"
