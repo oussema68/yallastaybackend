@@ -272,6 +272,11 @@ EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL", False)
 EMAIL_HOST_USER = env_str("EMAIL_HOST_USER") or "resend"
 # RESEND_API_KEY is an alias for EMAIL_HOST_PASSWORD (Resend SMTP password = API key).
 EMAIL_HOST_PASSWORD = env_str("EMAIL_HOST_PASSWORD") or env_str("RESEND_API_KEY")
+# Bound the SMTP connect/handshake so an unreachable or slow mail host can never hang
+# a gunicorn worker until it is killed with "WORKER TIMEOUT" (some PaaS, incl. Railway,
+# block outbound SMTP). On timeout the send raises, is caught in emails.services, and
+# signup/password-reset still succeed. Console/locmem backends (dev/tests) ignore this.
+EMAIL_TIMEOUT = env_int("EMAIL_TIMEOUT", 10, min_value=1, max_value=120)
 
 # Internal verification team inbox (document checklist notifications)
 VERIFICATION_TEAM_EMAIL = env_str("VERIFICATION_TEAM_EMAIL")
