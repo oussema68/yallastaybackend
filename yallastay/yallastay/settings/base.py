@@ -261,22 +261,30 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 YALLASTAY_TEAM_USER_EMAIL = env_str("YALLASTAY_TEAM_USER_EMAIL") or (
     "yallastay-team@internal.yallastay"
 )
-EMAIL_BACKEND = env_str("EMAIL_BACKEND") or (
-    "django.core.mail.backends.console.EmailBackend"
-)
-# SMTP (production: Resend — see docs/RESEND_SETUP.md and .env.example)
-EMAIL_HOST = env_str("EMAIL_HOST")
-EMAIL_PORT = env_int("EMAIL_PORT", 587, min_value=1, max_value=65535)
-EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
-EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL", False)
-EMAIL_HOST_USER = env_str("EMAIL_HOST_USER") or "resend"
-# RESEND_API_KEY is an alias for EMAIL_HOST_PASSWORD (Resend SMTP password = API key).
-EMAIL_HOST_PASSWORD = env_str("EMAIL_HOST_PASSWORD") or env_str("RESEND_API_KEY")
-# Bound the SMTP connect/handshake so an unreachable or slow mail host can never hang
-# a gunicorn worker until it is killed with "WORKER TIMEOUT" (some PaaS, incl. Railway,
-# block outbound SMTP). On timeout the send raises, is caught in emails.services, and
-# signup/password-reset still succeed. Console/locmem backends (dev/tests) ignore this.
-EMAIL_TIMEOUT = env_int("EMAIL_TIMEOUT", 10, min_value=1, max_value=120)
+# Transactional email backend (see ``emails`` app):
+#   RESEND_API_KEY set   -> Resend HTTPS API via django-anymail (works on Railway; no SMTP)
+#   else EMAIL_HOST_USER  -> SMTP (prod.py forces IPv4: Railway containers have no IPv6 egress)
+#   else                  -> console (local dev). Tests always use console/locmem.
+_resend_api_key = env_str("RESEND_API_KEY")
+_email_host_user = env_str("EMAIL_HOST_USER")
+
+if TESTING:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+elif _resend_api_key:
+    EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+    ANYMAIL = {"RESEND_API_KEY": _resend_api_key}
+elif _email_host_user:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = env_str("EMAIL_HOST") or "smtp.resend.com"
+    EMAIL_PORT = env_int("EMAIL_PORT", 587, min_value=1, max_value=65535)
+    EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+    EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL", False)
+    EMAIL_HOST_USER = _email_host_user
+    EMAIL_HOST_PASSWORD = env_str("EMAIL_HOST_PASSWORD")
+    # Fail fast on a blocked/slow SMTP host instead of hanging a gunicorn worker.
+    EMAIL_TIMEOUT = env_int("EMAIL_TIMEOUT", 15, min_value=1, max_value=120)
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Internal verification team inbox (document checklist notifications)
 VERIFICATION_TEAM_EMAIL = env_str("VERIFICATION_TEAM_EMAIL")
