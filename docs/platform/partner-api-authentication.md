@@ -1,10 +1,10 @@
-# Partner API authentication — OAuth 2.0 client credentials
+# Partner API authentication - OAuth 2.0 client credentials
 
 | | |
 |---|---|
 | **Audience** | Partners, integrators, security reviewers, internal platform engineers |
 | **Purpose** | Describe the **recommended machine-to-machine (M2M)** pattern for **server-to-server** API access, aligned with **OAuth 2.0** ([RFC 6749](https://www.rfc-editor.org/rfc/rfc6749)). |
-| **Disclaimer** | This document is a **technical and policy baseline**. It is **not** a guarantee that every endpoint is already exposed to partners or that a particular token URL is live in your environment—confirm with your integration agreement and API catalog. |
+| **Disclaimer** | This document is a **technical and policy baseline**. It is **not** a guarantee that every endpoint is already exposed to partners or that a particular token URL is live in your environment-confirm with your integration agreement and API catalog. |
 
 ---
 
@@ -23,7 +23,7 @@ Implementations often use **OAuth 2.0** frameworks (e.g. **django-oauth-toolkit*
 
 ## 2. OAuth 2.0 client credentials grant (summary)
 
-**RFC 6749, section 4.4 — Client Credentials Grant**
+**RFC 6749, section 4.4 - Client Credentials Grant**
 
 - The **resource owner** is the **client itself** (the partner’s application), not an end-user.
 - The client exchanges **client_id** + **client_secret** (or mTLS, in stricter setups) for an **access token** at the **token endpoint**.
@@ -50,7 +50,7 @@ Partners send a **POST** to your **token endpoint** (exact URL is environment-sp
 **HTTP**
 
 - **Method:** `POST`
-- **Content-Type:** `application/x-www-form-urlencoded` (typical) or `application/json` (some providers—pick one and document it)
+- **Content-Type:** `application/x-www-form-urlencoded` (typical) or `application/json` (some providers-pick one and document it)
 - **TLS:** HTTPS only in production
 
 **Body parameters (RFC 6749)**
@@ -67,7 +67,7 @@ RFC allows several methods. The most common for confidential server clients:
 - **HTTP Basic** with `client_id` as username and `client_secret` as password, **or**
 - **`client_id` + `client_secret`** in the form body (supported by many providers; document if you allow it)
 
-**Example (conceptual — do not treat as live URL)**
+**Example (conceptual - do not treat as live URL)**
 
 ```http
 POST /oauth/token/ HTTP/1.1

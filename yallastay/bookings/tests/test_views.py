@@ -22,7 +22,7 @@ def _landlord():
 
 
 def _lease_start_end(start_days_ahead=7):
-    """Reservation rules: start_date is 2–15 days from today; end after start."""
+    """Reservation rules: start_date is 2-15 days from today; end after start."""
     today = timezone.now().date()
     start = today + timedelta(days=start_days_ahead)
     end = start + timedelta(days=30)
@@ -483,3 +483,8 @@ class BookingsViewTests(APITestCase):
         self.client.force_authenticate(user=self.tenant)
         response = self.client.get(f"/api/viewings/{viewing.id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_viewing_detail_missing_returns_404(self):
+        self.client.force_authenticate(user=self.tenant)
+        response = self.client.get("/api/viewings/999999/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

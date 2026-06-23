@@ -22,6 +22,30 @@ class NotificationViewTests(APITestCase):
         response = self.client.get("/api/notifications/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_list_notifications_honors_limit(self):
+        Notification.objects.create(
+            user=self.user, notification_type="booking", title="A", body="1"
+        )
+        Notification.objects.create(
+            user=self.user, notification_type="booking", title="B", body="2"
+        )
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/notifications/?limit=1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    def test_unread_count_returns_only_unread_rows(self):
+        Notification.objects.create(
+            user=self.user, notification_type="booking", title="A", body="1", read=False
+        )
+        Notification.objects.create(
+            user=self.user, notification_type="booking", title="B", body="2", read=True
+        )
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/notifications/unread-count/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["unread"], 1)
+
     def test_mark_notification_read(self):
         n = Notification.objects.create(
             user=self.user, notification_type="booking", title="Test", body="Body"

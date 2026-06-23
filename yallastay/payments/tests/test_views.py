@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -146,6 +147,24 @@ class PaymentViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         pmt.refresh_from_db()
         self.assertEqual(pmt.status, "completed")
+
+    @patch("payments.hooks.on_payment_first_completed")
+    def test_webhook_calls_side_effect_once_when_retried(self, mock_hook):
+        Payment.objects.create(
+            user=self.user,
+            amount=5000,
+            payment_type="rent",
+            status="pending",
+            transaction_id="ys_idempotent_retry",
+        )
+        for _ in range(2):
+            response = self.client.post(
+                "/api/payments/webhook/stub/",
+                {"transaction_id": "ys_idempotent_retry"},
+                format="json",
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(mock_hook.call_count, 1)
 
     def test_webhook_posts_yallastay_team_message_for_rent_reservation(self):
         area = Area.objects.create(name="Dubai Marina", slug="dubai-marina")

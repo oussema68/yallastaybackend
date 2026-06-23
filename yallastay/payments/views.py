@@ -1,6 +1,8 @@
 import logging
 
 from core.db_rls import set_request_user_id_for_rls
+from core.query_window import apply_limit_offset
+from django.db import transaction
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
@@ -26,6 +28,12 @@ class PaymentListView(APIView):
 
     def get(self, request):
         payments = Payment.objects.filter(user=request.user).order_by("-created_at")
+        payments = apply_limit_offset(
+            payments,
+            request,
+            default_limit=100,
+            max_limit=250,
+        )
         serializer = PaymentSerializer(payments, many=True)
         logger.info(
             "payment.list: user_id=%s count=%s",
@@ -84,41 +92,54 @@ class PaymentWebhookStubView(APIView):
 
     def post(self, request):
         transaction_id = request.data.get("transaction_id") or request.data.get("id")
+        hook_payment_id = None
         if not transaction_id:
             logger.info("payment.webhook.stub: missing_transaction_id")
         else:
-            payment = (
-                Payment.objects.filter(transaction_id=transaction_id)
-                .select_related("reservation", "reservation__listing", "user")
-                .first()
-            )
-            if not payment:
-                logger.info(
-                    "payment.webhook.stub: transaction_id=%s not_found",
-                    transaction_id,
+            # Lock the row so concurrent retries/webhooks cannot fire side effects twice.
+            with transaction.atomic():
+                payment = (
+                    Payment.objects.select_for_update()
+                    .filter(transaction_id=transaction_id)
+                    .select_related("reservation", "reservation__listing", "user")
+                    .first()
                 )
-            elif not may_complete_stub_webhook(request=request, payment=payment):
-                logger.warning(
-                    "payment.webhook.stub: denied payment_id=%s transaction_id=%s",
-                    payment.id,
-                    transaction_id,
-                )
-            else:
-                set_request_user_id_for_rls(payment.user_id)
-                was_completed = payment.status == "completed"
-                payment.status = "completed"
-                payment.save()
-                logger.info(
-                    "payment.webhook.stub: payment_id=%s transaction_id=%s "
-                    "was_completed=%s",
-                    payment.id,
-                    transaction_id,
-                    was_completed,
-                )
-                if not was_completed:
-                    from .hooks import on_payment_first_completed
+                if not payment:
+                    logger.info(
+                        "payment.webhook.stub: transaction_id=%s not_found",
+                        transaction_id,
+                    )
+                elif not may_complete_stub_webhook(request=request, payment=payment):
+                    logger.warning(
+                        "payment.webhook.stub: denied payment_id=%s transaction_id=%s",
+                        payment.id,
+                        transaction_id,
+                    )
+                else:
+                    was_completed = payment.status == "completed"
+                    if not was_completed:
+                        set_request_user_id_for_rls(payment.user_id)
+                        payment.status = "completed"
+                        payment.save(update_fields=["status"])
+                        hook_payment_id = payment.id
+                    logger.info(
+                        "payment.webhook.stub: payment_id=%s transaction_id=%s "
+                        "was_completed=%s",
+                        payment.id,
+                        transaction_id,
+                        was_completed,
+                    )
 
-                    on_payment_first_completed(payment)
+            if hook_payment_id:
+                from .hooks import on_payment_first_completed
+
+                payment_for_hook = (
+                    Payment.objects.filter(pk=hook_payment_id)
+                    .select_related("reservation", "reservation__listing", "user")
+                    .first()
+                )
+                if payment_for_hook:
+                    on_payment_first_completed(payment_for_hook)
 
         return Response(
             {"received": True, "provider": "stub"}, status=status.HTTP_200_OK

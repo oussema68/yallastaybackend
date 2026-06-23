@@ -11,7 +11,7 @@ Product rules for *what* to verify (documents, RERA, title deeds) stay in [`../p
 
 ## 1. What it is
 
-- **Frontend:** A dedicated **staff-only** Vite app in the sibling repo **`yallastay_staff`** (default dev **http://localhost:3001**). The marketplace (`yallastay`) shows header link **“Verify team”** when **`VITE_STAFF_APP_URL`** is set (opens the staff app in a **new tab**). JWTs live on the **staff origin** only — staff must **sign in on that app**, not rely on the main site session.
+- **Frontend:** A dedicated **staff-only** Vite app in the sibling repo **`yallastay_staff`** (default dev **http://localhost:3001**). The marketplace (`yallastay`) shows header link **“Verify team”** when **`VITE_STAFF_APP_URL`** is set (opens the staff app in a **new tab**). JWTs live on the **staff origin** only - staff must **sign in on that app**, not rely on the main site session.
 - **Backend:** JSON API under **`/api/staff/verification/`** (JWT). Each pending broker/owner row includes a **document checklist** (required vs uploaded) and flags **`checklist_complete`** (informational; staff may still approve with business judgment).
 - **Django Admin** remains valid: approving **`RealtorProfile`** / **`LandlordProfile`** in admin does the same as **Approve** in the console (same models and signals).
 
@@ -21,7 +21,7 @@ Product rules for *what* to verify (documents, RERA, title deeds) stay in [`../p
 
 **Terminology.** The product does **not** maintain a separate “staff profile” entity. A **verification specialist** is a normal **user account** that has been explicitly granted permission to call the staff verification API and use the **verification console** SPA. The same identity can exist in the marketplace database as any other user; what changes is the **authorisation flag** on that account.
 
-**Who may access** — any authenticated user who satisfies **at least one** of the following (enforced by `accounts.staff_permissions.IsVerificationStaff`):
+**Who may access** - any authenticated user who satisfies **at least one** of the following (enforced by `accounts.staff_permissions.IsVerificationStaff`):
 
 | Mechanism | Where it is set |
 |-----------|-----------------|
@@ -39,13 +39,13 @@ Product rules for *what* to verify (documents, RERA, title deeds) stay in [`../p
 
 Use this sequence when onboarding a new verification specialist; adjust steps to match your internal access-management policy (ticketing, manager approval, etc.).
 
-1. **Identity** — Assign a dedicated work email (or approved shared mailbox policy) and record who is being provisioned and on whose authority.
-2. **User account** — Create the user in your normal process (self-registration on a controlled route, or Django Admin → **Users** → **Add user** with a strong initial password and **force password change** if your policy requires it).
-3. **Profile** — Ensure an **Accounts → User profiles** row exists for that user (created automatically on signup in typical flows).
-4. **Authorisation** — Open that profile in Django Admin and enable **Can verify documents**. Do **not** enable Django **staff** unless this person also needs Admin.
-5. **First login** — Direct the specialist to the **deployed verification console URL** (see §6 for local vs production). They authenticate with JWT on the **staff origin** only; the marketplace session does not grant console access by itself.
-6. **Optional discovery** — If the main app exposes **Verify team**, it is a convenience link; the specialist must still complete sign-in on the staff app origin.
-7. **Offboarding** — On role change or departure, remove **Can verify documents** (and revoke **staff** / deactivate the user) promptly; treat the flag as **privileged access** (see §9).
+1. **Identity** - Assign a dedicated work email (or approved shared mailbox policy) and record who is being provisioned and on whose authority.
+2. **User account** - Create the user in your normal process (self-registration on a controlled route, or Django Admin → **Users** → **Add user** with a strong initial password and **force password change** if your policy requires it).
+3. **Profile** - Ensure an **Accounts → User profiles** row exists for that user (created automatically on signup in typical flows).
+4. **Authorisation** - Open that profile in Django Admin and enable **Can verify documents**. Do **not** enable Django **staff** unless this person also needs Admin.
+5. **First login** - Direct the specialist to the **deployed verification console URL** (see §6 for local vs production). They authenticate with JWT on the **staff origin** only; the marketplace session does not grant console access by itself.
+6. **Optional discovery** - If the main app exposes **Verify team**, it is a convenience link; the specialist must still complete sign-in on the staff app origin.
+7. **Offboarding** - On role change or departure, remove **Can verify documents** (and revoke **staff** / deactivate the user) promptly; treat the flag as **privileged access** (see §9).
 
 ---
 
@@ -77,7 +77,7 @@ All routes require **`Authorization: Bearer <access_token>`** unless noted.
 
 | Method | Path | Body | Success |
 |--------|------|------|---------|
-| `GET` | `/api/staff/verification/queue/` | — | `200` — `{ "realtors": [...], "landlords": [...] }` |
+| `GET` | `/api/staff/verification/queue/` | - | `200` - `{ "realtors": [...], "landlords": [...] }` |
 | `POST` | `/api/staff/verification/realtors/<user_id>/decision/` | `{"action":"approve"}` or `{"action":"reject","message":"..."}` | `200` |
 | `POST` | `/api/staff/verification/landlords/<user_id>/decision/` | same | `200` |
 

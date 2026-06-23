@@ -85,9 +85,9 @@ class Migration(migrations.Migration):
                     "cleaning_time_window",
                     models.CharField(
                         choices=[
-                            ("morning", "Morning (8am–12pm)"),
-                            ("afternoon", "Afternoon (12pm–5pm)"),
-                            ("evening", "Evening (5pm–9pm)"),
+                            ("morning", "Morning (8am-12pm)"),
+                            ("afternoon", "Afternoon (12pm-5pm)"),
+                            ("evening", "Evening (5pm-9pm)"),
                         ],
                         default="morning",
                         max_length=20,

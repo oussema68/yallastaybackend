@@ -90,43 +90,44 @@ class PopularAreasView(APIView):
     permission_classes = [IsAuthenticated, IsRealtor]
 
     def get(self, request):
-        areas = Area.objects.all()
+        areas = list(Area.objects.values("id", "name", "slug").order_by("name"))
+        saves_by_area = {
+            row["listing__area_id"]: row["count"]
+            for row in Favorite.objects.filter(listing__area__isnull=False)
+            .values("listing__area_id")
+            .annotate(count=Count("id"))
+        }
+        viewings_by_area = {
+            row["listing__area_id"]: row["count"]
+            for row in ViewingRequest.objects.filter(listing__area__isnull=False)
+            .values("listing__area_id")
+            .annotate(count=Count("id"))
+        }
+        reservations_by_area = {
+            row["listing__area_id"]: row["count"]
+            for row in Reservation.objects.filter(listing__area__isnull=False)
+            .exclude(status="cancelled")
+            .values("listing__area_id")
+            .annotate(count=Count("id"))
+        }
+
         result = []
         for area in areas:
-            listings_in_area = Listing.objects.filter(area=area)
-            listing_ids = list(listings_in_area.values_list("id", flat=True))
-
-            saves = (
-                Favorite.objects.filter(listing_id__in=listing_ids).count()
-                if listing_ids
-                else 0
-            )
-            viewings = (
-                ViewingRequest.objects.filter(listing_id__in=listing_ids).count()
-                if listing_ids
-                else 0
-            )
-            reservations = (
-                Reservation.objects.filter(listing_id__in=listing_ids)
-                .exclude(status="cancelled")
-                .count()
-                if listing_ids
-                else 0
-            )
-
+            aid = area["id"]
             result.append(
                 {
-                    "id": area.id,
-                    "name": area.name,
-                    "slug": area.slug,
-                    "saves": saves,
-                    "viewings": viewings,
-                    "reservations": reservations,
+                    "id": aid,
+                    "name": area["name"],
+                    "slug": area["slug"],
+                    "saves": saves_by_area.get(aid, 0),
+                    "viewings": viewings_by_area.get(aid, 0),
+                    "reservations": reservations_by_area.get(aid, 0),
                 }
             )
 
         result.sort(
-            key=lambda x: x["saves"] + x["viewings"] + x["reservations"], reverse=True
+            key=lambda x: x["saves"] + x["viewings"] + x["reservations"],
+            reverse=True,
         )
         return Response({"areas": result})
 

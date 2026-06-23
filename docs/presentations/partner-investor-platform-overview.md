@@ -1,4 +1,4 @@
-# Yallastay — Partner & investor platform overview
+# Yallastay - Partner & investor platform overview
 
 | | |
 |---|---|
@@ -72,9 +72,9 @@ flowchart LR
 
 ### Partner integrations (OAuth 2.0 client credentials)
 
-For **machine-to-machine** access—partner **servers**, ERP, or data pipelines, not a person signing in through your SPA—the **recommended** industry pattern is **OAuth 2.0 client credentials** ([RFC 6749](https://www.rfc-editor.org/rfc/rfc6749) §4.4): the partner registers a **confidential client**, exchanges **client id + secret** at a **token endpoint** for a **short-lived access token**, and calls your JSON API with **`Authorization: Bearer`**. That is distinct from **interactive user JWT** used by the marketplace and staff web apps (**Simple JWT** today).
+For **machine-to-machine** access-partner **servers**, ERP, or data pipelines, not a person signing in through your SPA-the **recommended** industry pattern is **OAuth 2.0 client credentials** ([RFC 6749](https://www.rfc-editor.org/rfc/rfc6749) §4.4): the partner registers a **confidential client**, exchanges **client id + secret** at a **token endpoint** for a **short-lived access token**, and calls your JSON API with **`Authorization: Bearer`**. That is distinct from **interactive user JWT** used by the marketplace and staff web apps (**Simple JWT** today).
 
-**What this deck claims today:** the platform is **API-first** and **JWT-based for interactive clients**. **Dedicated partner OAuth** (token URL, client registry, scopes) is **documented as the target contract** for B2B integrations—not asserted here as a fixed production feature list. See [`../platform/partner-api-authentication.md`](../platform/partner-api-authentication.md) for the full framing, example request shape, and operational checklist for agreements.
+**What this deck claims today:** the platform is **API-first** and **JWT-based for interactive clients**. **Dedicated partner OAuth** (token URL, client registry, scopes) is **documented as the target contract** for B2B integrations-not asserted here as a fixed production feature list. See [`../platform/partner-api-authentication.md`](../platform/partner-api-authentication.md) for the full framing, example request shape, and operational checklist for agreements.
 
 ### Backend domains (Django apps)
 
@@ -107,13 +107,13 @@ For **machine-to-machine** access—partner **servers**, ERP, or data pipelines,
 
 ## UAE alignment (positioning, not legal advice)
 
-Product rules for **what** to collect and how brokers and owners interact with **title deed** and **advertising permit** concepts are documented for **product and engineering alignment** — see [`../product/uae-verification-pipeline.md`](../product/uae-verification-pipeline.md). **Government automation** (Ejari/DLD) is **roadmap**, not a claim of live integration.
+Product rules for **what** to collect and how brokers and owners interact with **title deed** and **advertising permit** concepts are documented for **product and engineering alignment** - see [`../product/uae-verification-pipeline.md`](../product/uae-verification-pipeline.md). **Government automation** (Ejari/DLD) is **roadmap**, not a claim of live integration.
 
 ---
 
 ## Security & privacy (headline)
 
-- **Layered controls:** authentication, authorization on views, **PostgreSQL RLS** where enabled, input sanitization on sensitive staff actions, CORS and production **HTTPS** expectations — summarized for stakeholders in [`../SECURITY_CHECKLIST.md`](../SECURITY_CHECKLIST.md) and [`../security/defense-layers.md`](../security/defense-layers.md).
+- **Layered controls:** authentication, authorization on views, **PostgreSQL RLS** where enabled, input sanitization on sensitive staff actions, CORS and production **HTTPS** expectations - summarized for stakeholders in [`../SECURITY_CHECKLIST.md`](../SECURITY_CHECKLIST.md) and [`../security/defense-layers.md`](../security/defense-layers.md).
 - **Partner / M2M access:** **OAuth 2.0 client credentials** is the documented baseline for **server-to-server** integrations (see [`../platform/partner-api-authentication.md`](../platform/partner-api-authentication.md)); distinguish from **end-user JWT** in browsers.
 - **Sensible demo posture:** development **stub payment webhook** must never be treated as production security; investor demos should stay on **stub** unless Stripe is explicitly rehearsed.
 
@@ -124,8 +124,8 @@ Product rules for **what** to collect and how brokers and owners interact with *
 | Environment | Notes |
 |-------------|--------|
 | **Local** | Backend `runserver` + frontend `npm run dev`; `bootstrap_demo` seeds areas, lifestyle plans, and **presentation accounts** including staff queue fixtures |
-| **Hosted (e.g. Railway)** | Split **API** and **static SPA**; production requires **`FRONTEND_URL`**, **`ALLOWED_HOSTS`**, **`CORS_ALLOWED_ORIGINS`**, database URL, secrets — see [`../DEMO_PRESENTATION.md`](../DEMO_PRESENTATION.md) |
-| **Investor walkthrough** | Same document: **12–18 minute** script (marketplace, tenant lifestyle stub, landlord/broker, **staff verification**, optional **rent → e-sign** beat) |
+| **Hosted (e.g. Railway)** | Split **API** and **static SPA**; production requires **`FRONTEND_URL`**, **`ALLOWED_HOSTS`**, **`CORS_ALLOWED_ORIGINS`**, database URL, secrets - see [`../DEMO_PRESENTATION.md`](../DEMO_PRESENTATION.md) |
+| **Investor walkthrough** | Same document: **12-18 minute** script (marketplace, tenant lifestyle stub, landlord/broker, **staff verification**, optional **rent → e-sign** beat) |
 
 ---
 
@@ -133,20 +133,20 @@ Product rules for **what** to collect and how brokers and owners interact with *
 
 | Topic | Status |
 |-------|--------|
-| **Native iOS/Android apps** | **Roadmap**; API-first web today — see [`../product/mobile-roadmap.md`](../product/mobile-roadmap.md) |
-| **Full Ejari / DLD automation** | **Not integrated**; metadata hooks and manual process — see [`../product/mvp-gap-analysis.md`](../product/mvp-gap-analysis.md) |
+| **Native iOS/Android apps** | **Roadmap**; API-first web today - see [`../product/mobile-roadmap.md`](../product/mobile-roadmap.md) |
+| **Full Ejari / DLD automation** | **Not integrated**; metadata hooks and manual process - see [`../product/mvp-gap-analysis.md`](../product/mvp-gap-analysis.md) |
 | **Bank transfer rent** | **Out of scope** for unified Checkout today |
 | **Production e-sign vendor** | **In-house PDF path** demonstrates the contract; enterprise story may add **DocuSign-class** vendors (see [`../esign/pdf-signing-agreement.md`](../esign/pdf-signing-agreement.md)) |
-| **Partner server-to-server OAuth** | **Interactive JWT** ships for web; **OAuth 2.0 client credentials** for partners is **documented** as the target M2M pattern—see [`../platform/partner-api-authentication.md`](../platform/partner-api-authentication.md) |
+| **Partner server-to-server OAuth** | **Interactive JWT** ships for web; **OAuth 2.0 client credentials** for partners is **documented** as the target M2M pattern-see [`../platform/partner-api-authentication.md`](../platform/partner-api-authentication.md) |
 
 ---
 
 ## Why this architecture for partners
 
-1. **One API contract** — Web now; **mobile later** without rewriting core business rules on the client.
-2. **Webhook-native money** — Aligns with how **Stripe** and future **e-sign SaaS** expect to integrate.
-3. **Explicit verification domain** — Supports **regulated-market storytelling** (UAE) and **staff scalability** beyond Django Admin alone.
-4. **Operational realism** — Lifestyle services, messaging, and notifications show the platform is meant to run **after** the first booking, not only as a classifieds site.
+1. **One API contract** - Web now; **mobile later** without rewriting core business rules on the client.
+2. **Webhook-native money** - Aligns with how **Stripe** and future **e-sign SaaS** expect to integrate.
+3. **Explicit verification domain** - Supports **regulated-market storytelling** (UAE) and **staff scalability** beyond Django Admin alone.
+4. **Operational realism** - Lifestyle services, messaging, and notifications show the platform is meant to run **after** the first booking, not only as a classifieds site.
 
 ---
 

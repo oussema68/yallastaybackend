@@ -47,6 +47,16 @@ class MessagingViewTests(APITestCase):
             any("messaging.conversation.list" in r.getMessage() for r in cm.records)
         )
 
+    def test_list_conversations_honors_limit(self):
+        conv_a = Conversation.objects.create(listing=self.listing)
+        conv_b = Conversation.objects.create(listing=self.listing)
+        conv_a.participants.add(self.user1, self.listing.listed_by)
+        conv_b.participants.add(self.user1, self.listing.listed_by)
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get("/api/conversations/?limit=1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
     def test_create_conversation_requires_uae_id(self):
         self.client.force_authenticate(user=self.user1)
         response = self.client.post(
@@ -125,6 +135,53 @@ class MessagingViewTests(APITestCase):
         self.assertEqual(conv_payload["listing"], self.listing.id)
         self.assertEqual(conv_payload["listing_detail"]["title"], "Test")
         self.assertEqual(conv_payload["other_user"]["id"], self.listing.listed_by_id)
+
+    def test_list_messages_honors_limit(self):
+        conv = Conversation.objects.create(listing=self.listing)
+        conv.participants.add(self.user1, self.listing.listed_by)
+        Message.objects.create(conversation=conv, sender=self.user1, content="One")
+        Message.objects.create(conversation=conv, sender=self.user1, content="Two")
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get(f"/api/conversations/{conv.id}/messages/?limit=1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["messages"]), 1)
+
+    def test_list_messages_limit_returns_latest_window(self):
+        conv = Conversation.objects.create(listing=self.listing)
+        conv.participants.add(self.user1, self.listing.listed_by)
+        Message.objects.create(conversation=conv, sender=self.user1, content="One")
+        Message.objects.create(conversation=conv, sender=self.user1, content="Two")
+        Message.objects.create(conversation=conv, sender=self.user1, content="Three")
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get(f"/api/conversations/{conv.id}/messages/?limit=2")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            [row["content"] for row in response.data["messages"]],
+            ["Two", "Three"],
+        )
+
+    def test_conversation_unread_summary_counts_other_sender_only(self):
+        conv = Conversation.objects.create(listing=self.listing)
+        conv.participants.add(self.user1, self.listing.listed_by)
+        Message.objects.create(
+            conversation=conv,
+            sender=self.listing.listed_by,
+            content="Unread 1",
+        )
+        Message.objects.create(
+            conversation=conv,
+            sender=self.listing.listed_by,
+            content="Unread 2",
+        )
+        Message.objects.create(
+            conversation=conv,
+            sender=self.user1,
+            content="Mine",
+        )
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get("/api/conversations/unread-summary/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["unread_messages"], 2)
 
     def test_message_mark_read(self):
         conv = Conversation.objects.create(listing=self.listing)

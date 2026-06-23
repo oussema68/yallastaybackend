@@ -59,7 +59,7 @@ def seed_templates(apps, schema_editor):
         defaults={
             "name": "Realtor invites property owner",
             "description": "Placeholders: {listing_title}, {realtor_name}, {listing_url}, {signup_url}, {accept_url}",
-            "subject": "{realtor_name} invited you as owner — {listing_title}",
+            "subject": "{realtor_name} invited you as owner - {listing_title}",
             "body_text": (
                 "Hi,\n\n"
                 "{realtor_name} listed “{listing_title}” for you on Yallastay.\n\n"

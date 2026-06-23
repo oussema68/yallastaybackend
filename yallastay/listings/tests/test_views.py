@@ -602,6 +602,32 @@ class ListingViewSetTests(APITestCase):
         response = self.client.get("/api/listings/?ordering=price")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_list_listings_limit_caps_rows(self):
+        Listing.objects.create(
+            title="Second Apartment",
+            description="Another place",
+            price=5500,
+            type="apartment",
+            area=self.area,
+            listed_by=self.user,
+        )
+        Listing.objects.create(
+            title="Third Apartment",
+            description="Third place",
+            price=5600,
+            type="apartment",
+            area=self.area,
+            listed_by=self.user,
+        )
+        response = self.client.get("/api/listings/?limit=1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        rows = (
+            response.data.get("results")
+            if isinstance(response.data, dict)
+            else response.data
+        )
+        self.assertEqual(len(rows), 1)
+
     def test_listing_interested_only_listed_by(self):
         student = User.objects.create_user(
             email="student@example.com", password="Pass123!"

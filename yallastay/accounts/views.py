@@ -27,6 +27,7 @@ from .serializers import (
     UserProfileUpdateSerializer,
 )
 from .tokens import email_verification_token_generator
+from core.background import run_side_effect
 from notifications.services import notify_user
 
 User = get_user_model()
@@ -83,7 +84,11 @@ class RegisterView(generics.CreateAPIView):
 
         def after_signup():
             signup_user = User.objects.get(pk=user_id)
-            send_email_verification(signup_user)
+            run_side_effect(
+                "send_email_verification_after_signup",
+                send_email_verification,
+                signup_user,
+            )
             notify_user(
                 signup_user,
                 "welcome",
@@ -231,7 +236,11 @@ class ResendVerificationEmailView(APIView):
                 {"detail": "Email already verified."},
                 status=status.HTTP_200_OK,
             )
-        send_email_verification(user)
+        run_side_effect(
+            "send_email_verification_resend",
+            send_email_verification,
+            user,
+        )
         return Response(
             {"detail": "Verification email sent."},
             status=status.HTTP_200_OK,
@@ -254,7 +263,11 @@ class PasswordResetRequestView(APIView):
         email = BaseUserManager.normalize_email(raw)
         user = User.objects.filter(email__iexact=email).first()
         if user and user.is_active:
-            send_password_reset_email(user)
+            run_side_effect(
+                "send_password_reset_email",
+                send_password_reset_email,
+                user,
+            )
         return Response(
             {
                 "detail": "If an account exists for this email, you will receive password reset instructions."

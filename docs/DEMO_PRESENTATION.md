@@ -190,23 +190,23 @@ App: **http://localhost:3000** · API (direct): **http://localhost:8000**
 | Lifestyle team (Services overview table) | `demo.team@present.yallastay` | `DemoPresent2026!` |
 | Verification console (brokers & owners) | `demo.verify@present.yallastay` | `DemoPresent2026!` |
 | Realtor (approved; broker-listed **[Demo]** listing) | `demo.realtor@present.yallastay` | `DemoPresent2026!` |
-| Realtor (pending — appears in staff queue) | `demo.realtor-pending@present.yallastay` | `DemoPresent2026!` |
-| Owner (pending — appears in staff queue) | `demo.owner-pending@present.yallastay` | `DemoPresent2026!` |
+| Realtor (pending - appears in staff queue) | `demo.realtor-pending@present.yallastay` | `DemoPresent2026!` |
+| Owner (pending - appears in staff queue) | `demo.owner-pending@present.yallastay` | `DemoPresent2026!` |
 
 Open the **staff verification** app (**`yallastay_staff`**, default **http://localhost:3001**) and sign in there (JWT is per origin). In the main marketplace, set **`VITE_STAFF_APP_URL=http://localhost:3001`** so **Verify team** appears for eligible users. **Operations runbook:** [`operations/staff-verification-console.md`](operations/staff-verification-console.md).
 
 Listings are titled **`[Demo] …`** (including **`[Demo] Marina · broker-listed studio`** by the approved realtor). The tenant has a **confirmed** reservation on the primary Marina **[Demo]** listing for **lifestyle** and **rent / lease e-sign** demos. **`seed_demo`** also creates a **Messages** thread on that listing (landlord → tenant).
 
-## Suggested flow (12–18 min)
+## Suggested flow (12-18 min)
 
 1. **Guest:** Home, Search, open a **[Demo]** listing (landlord or broker-listed).
 2. **Login as tenant:** Dashboard, **Messages** (seeded thread on the Marina demo listing), **Verify** (already approved in seed).
 3. **Services** (`/services`): Plans; subscribe with **stub checkout** → complete payment in **Stub payment** modal → subscription **active** → **Configure your benefits** (gym / cleaning window). Ensure `seed_lifestyle` ran so partner gyms exist.
 4. **Login as landlord:** My listings / add property (optional). Three seeded **[Demo]** listings exist (two landlord, one broker).
-5. **Login as `demo.realtor` (optional):** Realtor dashboard / listings — shows **staff-approved** broker path and Trakheesi-style field on the broker **[Demo]** listing.
+5. **Login as `demo.realtor` (optional):** Realtor dashboard / listings - shows **staff-approved** broker path and Trakheesi-style field on the broker **[Demo]** listing.
 6. **Login as demo.team:** Services page **team** block: all subscriptions overview (read-only).
-7. **Staff app (`yallastay_staff`, e.g. localhost:3001):** sign in as **`demo.verify`** — queue includes **at least** `demo.realtor-pending@…` and `demo.owner-pending@…` (document checklist; approve/reject same as Django Admin). **Tip:** if you **approve** them during a rehearsal, run **`bootstrap_demo`** again (or re-run **`seed_demo`**) before the next demo to restore pending rows.
-8. **Optional — Rent (stub) → lease e-sign (2–3 min):** As **tenant**, open **Reservations** / payments for the **confirmed** Marina reservation → start **rent** checkout (**stub**) → complete payment (in-app stub UI while logged in, or `POST /api/payments/webhook/stub/` with `transaction_id` plus JWT or **`X-Stub-Webhook-Secret`** if the API enforces it). Then open **lease signing** from the dashboard / notification link, or follow magic-link URLs from **`GET /api/esign/sessions/`** (renter signs first; see [`esign/setup.md`](esign/setup.md)). Automated API proof: `python manage.py test core.tests.test_happy_path_chain`. Full manual ticks: [`operations/happy-path-e2e-checklist.md`](operations/happy-path-e2e-checklist.md).
+7. **Staff app (`yallastay_staff`, e.g. localhost:3001):** sign in as **`demo.verify`** - queue includes **at least** `demo.realtor-pending@…` and `demo.owner-pending@…` (document checklist; approve/reject same as Django Admin). **Tip:** if you **approve** them during a rehearsal, run **`bootstrap_demo`** again (or re-run **`seed_demo`**) before the next demo to restore pending rows.
+8. **Optional - Rent (stub) → lease e-sign (2-3 min):** As **tenant**, open **Reservations** / payments for the **confirmed** Marina reservation → start **rent** checkout (**stub**) → complete payment (in-app stub UI while logged in, or `POST /api/payments/webhook/stub/` with `transaction_id` plus JWT or **`X-Stub-Webhook-Secret`** if the API enforces it). Then open **lease signing** from the dashboard / notification link, or follow magic-link URLs from **`GET /api/esign/sessions/`** (renter signs first; see [`esign/setup.md`](esign/setup.md)). Automated API proof: `python manage.py test core.tests.test_happy_path_chain`. Full manual ticks: [`operations/happy-path-e2e-checklist.md`](operations/happy-path-e2e-checklist.md).
 9. **Backend sanity:** `/backend` page or `GET http://localhost:8000/` → `{"status":"ok"}`.
 
 ## Payments (stub)

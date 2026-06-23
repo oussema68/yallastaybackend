@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
+from core.query_window import apply_limit_offset
 from .emails import send_document_upload_emails
 from .models import Document
 from .access import user_can_read_document
@@ -40,6 +41,12 @@ class DocumentListCreateView(APIView):
 
     def get(self, request):
         docs = Document.objects.filter(user=request.user).order_by("-created_at")
+        docs = apply_limit_offset(
+            docs,
+            request,
+            default_limit=100,
+            max_limit=250,
+        )
         return Response(DocumentSerializer(docs, many=True).data)
 
     def post(self, request):

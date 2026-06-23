@@ -6,7 +6,7 @@ Transactional mail (signup verification, password reset, listing notifications) 
 
 1. Sign in at [resend.com](https://resend.com).
 2. **Domains** → add **`yallastay.ae`** → add the DNS records Resend shows (SPF, DKIM, etc.) until status is **Verified**.
-3. **API Keys** → create a key (starts with `re_`). Store it only in Railway / secrets — never in git.
+3. **API Keys** → create a key (starts with `re_`). Store it only in Railway / secrets - never in git.
 4. Confirm you can send from **`demo@yallastay.ae`** (same verified domain).
 
 ## 2. Railway (API service variables)
@@ -47,12 +47,12 @@ cd yallastay
 python manage.py migrate --noinput
 ```
 
-No `bootstrap_demo` required — template rows are created by migrations.
+No `bootstrap_demo` required - template rows are created by migrations.
 
 ## 4. Verify
 
 1. Register a new user on the live SPA.
-2. Resend dashboard → **Emails** — should show a send to the registrant (`email_verification` template).
+2. Resend dashboard → **Emails** - should show a send to the registrant (`email_verification` template).
 3. Backend **`EmailMessage`** rows should show `status=sent` (Django admin or DB).
 
 Local dev stays on console backend unless you copy the SMTP vars into a gitignored `.env` (not recommended for day-to-day dev).

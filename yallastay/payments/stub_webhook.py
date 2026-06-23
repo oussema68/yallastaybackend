@@ -1,4 +1,4 @@
-"""Who may complete a payment via the stub webhook (dev / QA only — never a Stripe substitute)."""
+"""Who may complete a payment via the stub webhook (dev / QA only - never a Stripe substitute)."""
 
 from __future__ import annotations
 

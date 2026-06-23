@@ -10,6 +10,7 @@ import logging
 from decimal import Decimal
 
 from django.conf import settings
+from django.db import transaction
 
 from core.db_rls import set_request_user_id_for_rls
 from rest_framework import status
@@ -226,27 +227,55 @@ def handle_stripe_webhook(request):
         logger.warning("No Payment row for Stripe session id=%s", session_obj.get("id"))
         return Response({"received": True, "note": "no matching payment"}, status=200)
 
-    set_request_user_id_for_rls(payment.user_id)
-
     method_label = resolve_checkout_payment_method_label(session_obj)
+    hook_payment_id = None
+    from .models import Payment
 
-    was_completed = payment.status == "completed"
-    payment.status = "completed"
-    if method_label:
-        payment.payment_method = method_label
-    update_fields = ["status"]
-    if method_label:
-        update_fields.append("payment_method")
-    payment.save(update_fields=update_fields)
+    # Lock so concurrent/retried webhook deliveries stay idempotent.
+    with transaction.atomic():
+        payment = (
+            Payment.objects.select_for_update()
+            .filter(pk=payment.pk)
+            .select_related("reservation", "reservation__listing", "user")
+            .first()
+        )
+        if not payment:
+            logger.warning(
+                "Stripe payment row disappeared after resolve: session=%s",
+                session_obj.get("id"),
+            )
+            return Response(
+                {"received": True, "note": "no matching payment"}, status=200
+            )
+
+        set_request_user_id_for_rls(payment.user_id)
+
+        was_completed = payment.status == "completed"
+        if not was_completed:
+            payment.status = "completed"
+            if method_label:
+                payment.payment_method = method_label
+            update_fields = ["status"]
+            if method_label:
+                update_fields.append("payment_method")
+            payment.save(update_fields=update_fields)
+            hook_payment_id = payment.id
     logger.info(
         "stripe.webhook.completed: payment_id=%s session_id=%s was_completed=%s",
         payment.id,
         session_obj.get("id"),
         was_completed,
     )
-    if not was_completed:
+
+    if hook_payment_id:
         from payments.hooks import on_payment_first_completed
 
-        on_payment_first_completed(payment)
+        payment_for_hook = (
+            Payment.objects.filter(pk=hook_payment_id)
+            .select_related("reservation", "reservation__listing", "user")
+            .first()
+        )
+        if payment_for_hook:
+            on_payment_first_completed(payment_for_hook)
 
     return Response({"received": True, "payment_id": payment.id}, status=200)

@@ -92,7 +92,7 @@ def landlord_checklist_items(is_emirati: bool | None) -> list[ChecklistItem]:
         items.append(
             ChecklistItem(
                 "residence_visa",
-                "Residence visa (required if not Emirati — confirm profile)",
+                "Residence visa (required if not Emirati - confirm profile)",
                 False,
             )
         )

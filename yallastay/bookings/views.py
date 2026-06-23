@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from accounts.permissions import IsUAEIDVerified
+from core.query_window import apply_limit_offset
 from listings.models import Listing
 from notifications.services import notify_user
 from .party import reservation_party
@@ -54,12 +55,23 @@ class ViewingRequestListCreateView(APIView):
         except Exception:
             role = None
 
+        qs = ViewingRequest.objects.select_related(
+            "listing",
+            "listing__area",
+            "listing__listed_by",
+            "user",
+        ).order_by("-updated_at", "-created_at")
         if role in ["landlord", "realtor"]:
-            return ViewingRequest.objects.filter(listing__listed_by=user)
-        return ViewingRequest.objects.filter(user=user)
+            return qs.filter(listing__listed_by=user)
+        return qs.filter(user=user)
 
     def get(self, request):
-        queryset = self.get_queryset()
+        queryset = apply_limit_offset(
+            self.get_queryset(),
+            request,
+            default_limit=100,
+            max_limit=200,
+        )
         serializer = ViewingRequestSerializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -87,7 +99,15 @@ class ViewingRequestDetailView(APIView):
     permission_classes = [IsAuthenticated, CanManageViewing]
 
     def get_object(self, pk):
-        return ViewingRequest.objects.get(pk=pk)
+        return get_object_or_404(
+            ViewingRequest.objects.select_related(
+                "listing",
+                "listing__area",
+                "listing__listed_by",
+                "user",
+            ),
+            pk=pk,
+        )
 
     def get(self, request, pk):
         viewing = self.get_object(pk)
@@ -156,6 +176,12 @@ class ReservationListCreateView(APIView):
                 "lease_signing",
             )
             .order_by("-updated_at", "-created_at")
+        )
+        queryset = apply_limit_offset(
+            queryset,
+            request,
+            default_limit=100,
+            max_limit=200,
         )
         serializer = ReservationSerializer(
             queryset, many=True, context={"request": request}

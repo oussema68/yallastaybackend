@@ -21,7 +21,7 @@ class Review(models.Model):
         blank=True,
         related_name="reviews",
     )
-    rating = models.PositiveSmallIntegerField()  # 1–5
+    rating = models.PositiveSmallIntegerField()  # 1-5
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

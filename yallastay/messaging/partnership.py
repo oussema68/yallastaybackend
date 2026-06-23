@@ -14,7 +14,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 DEFAULT_INTRO = (
-    "You're connected here to coordinate on this listing — share documents, "
+    "You're connected here to coordinate on this listing - share documents, "
     "Trakheesi updates, and title deed details."
 )
 
@@ -51,7 +51,7 @@ def ensure_partnership_conversation(
     intro_text: str | None = None,
 ) -> Conversation | None:
     """
-    Create or refresh the owner–broker thread for this listing.
+    Create or refresh the owner-broker thread for this listing.
     Called when assigned_realtor or property_owner is set/changed.
     """
     parties = partnership_parties(listing)

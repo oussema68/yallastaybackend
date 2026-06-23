@@ -22,7 +22,7 @@ Related docs: [`DEMO_PRESENTATION.md`](DEMO_PRESENTATION.md), [`USAGE_GUIDE.md`]
 
 | Gap | Notes |
 |-----|-------|
-| **E-sign depth** | The demo script hits **start rent → complete stub → session exists**; full **both-party sign + download** is in [`operations/happy-path-e2e-checklist.md`](operations/happy-path-e2e-checklist.md) and `core.tests.test_happy_path_chain` — extend the script if you need every click on stage. |
+| **E-sign depth** | The demo script hits **start rent → complete stub → session exists**; full **both-party sign + download** is in [`operations/happy-path-e2e-checklist.md`](operations/happy-path-e2e-checklist.md) and `core.tests.test_happy_path_chain` - extend the script if you need every click on stage. |
 | **Email-dependent flows** | Demo still **avoids** password reset, magic-link email, etc., unless **SMTP** is configured; those paths are not “demo proven”. |
 
 ---

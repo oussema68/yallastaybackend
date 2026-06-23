@@ -157,12 +157,12 @@ def send_owner_invite_email(
     except ValueError:
         send_transactional_email(
             to_email,
-            subject=f"{realtor_name} invited you as owner — {title}",
+            subject=f"{realtor_name} invited you as owner - {title}",
             body_text=(
                 f"Hi,\n\n"
                 f"{realtor_name} listed “{title}” for you on Yallastay.\n\n"
                 f"1) Create a landlord account (or sign in):\n{signup_url}\n\n"
-                f"2) After signup, open the listing and tap “Accept owner link” — "
+                f"2) After signup, open the listing and tap “Accept owner link” - "
                 f"or we link you automatically when you register with the link above.\n\n"
                 f"View the listing:\n{prop_url}\n\n"
                 f" -  Yallastay"

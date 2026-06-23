@@ -173,6 +173,30 @@ REST_FRAMEWORK = {
     },
 }
 
+# Cache backend:
+# - REDIS_URL set -> shared Redis cache (recommended on Railway for global throttling)
+# - else          -> local memory (single-process scope, fine for dev/tests)
+REDIS_URL = env_str("REDIS_URL") or env_str("REDIS_PRIVATE_URL")
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+            "TIMEOUT": 300,
+            "OPTIONS": {
+                "socket_connect_timeout": 5,
+                "socket_timeout": 5,
+            },
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "yallastay-local-cache",
+        }
+    }
+
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
@@ -250,7 +274,7 @@ if _use_s3_media():
         },
     }
 
-# URLs (for email links, etc.) — dev/prod modules set required values from .env
+# URLs (for email links, etc.) - dev/prod modules set required values from .env
 FRONTEND_URL = env_str("FRONTEND_URL")
 BACKEND_URL = env_str("BACKEND_URL")
 
@@ -322,6 +346,15 @@ STUB_WEBHOOK_SECRET = env_str("STUB_WEBHOOK_SECRET")
 
 # E-sign: auto-generate a placeholder lease PDF on payment (dev). Production relies on lister/realtor upload.
 ESIGN_AUTO_GENERATE_CONTRACT_PDF = env_bool("ESIGN_AUTO_GENERATE_CONTRACT_PDF", False)
+
+# Non-critical side effects (transactional emails, etc.) can run on background threads
+# to keep auth/request latency low under load. Tests always run inline for determinism.
+ASYNC_SIDE_EFFECTS_ENABLED = (
+    False if TESTING else env_bool("ASYNC_SIDE_EFFECTS_ENABLED", True)
+)
+ASYNC_SIDE_EFFECT_WORKERS = env_int(
+    "ASYNC_SIDE_EFFECT_WORKERS", 2, min_value=1, max_value=8
+)
 
 # E-sign uploads & signature image limits (tune via environment; no secrets)
 ESIGN_LEASE_UPLOAD_MAX_BYTES = env_int(

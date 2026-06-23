@@ -73,7 +73,7 @@ This document summarizes product direction, implemented features, **local vs pro
 | URL | Use |
 |-----|-----|
 | `POST /api/payments/webhook/` | Stub (alias) |
-| `POST /api/payments/webhook/stub/` | Dev — `{ "transaction_id": "..." }` + JWT (payer) or `X-Stub-Webhook-Secret` |
+| `POST /api/payments/webhook/stub/` | Dev - `{ "transaction_id": "..." }` + JWT (payer) or `X-Stub-Webhook-Secret` |
 | `POST /api/payments/webhook/stripe/` | Stripe - raw body + `Stripe-Signature` |
 
 ### After payment (first time a row becomes `completed`)

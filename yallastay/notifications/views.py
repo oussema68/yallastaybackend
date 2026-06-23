@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 
+from core.query_window import apply_limit_offset
 from .models import Notification, NotificationPreference
 from .serializers import NotificationSerializer, NotificationPreferenceSerializer
 
@@ -17,8 +18,24 @@ class NotificationListView(APIView):
         notifications = Notification.objects.filter(user=request.user).order_by(
             "-created_at"
         )
+        notifications = apply_limit_offset(
+            notifications,
+            request,
+            default_limit=100,
+            max_limit=250,
+        )
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data)
+
+
+class NotificationUnreadCountView(APIView):
+    """GET: Lightweight unread notification counter."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        unread = Notification.objects.filter(user=request.user, read=False).count()
+        return Response({"unread": unread})
 
 
 class NotificationMarkReadView(APIView):
@@ -39,7 +56,15 @@ class NotificationPreferenceListUpdateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        prefs = NotificationPreference.objects.filter(user=request.user)
+        prefs = NotificationPreference.objects.filter(user=request.user).order_by(
+            "channel", "notification_type"
+        )
+        prefs = apply_limit_offset(
+            prefs,
+            request,
+            default_limit=100,
+            max_limit=250,
+        )
         serializer = NotificationPreferenceSerializer(prefs, many=True)
         return Response(serializer.data)
 

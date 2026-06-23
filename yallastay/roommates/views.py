@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.permissions import IsUAEIDVerified
+from core.query_window import apply_limit_offset
 from .models import RoommateProfile, RoommateInterest
 from .serializers import (
     RoommateProfileSerializer,
@@ -187,6 +188,12 @@ class RoommateSearchView(APIView):
         if sex:
             profiles = profiles.filter(user__profile__sex=sex)
 
+        profiles = apply_limit_offset(
+            profiles.order_by("-created_at"),
+            request,
+            default_limit=100,
+            max_limit=200,
+        )
         serializer = RoommateProfileSerializer(profiles, many=True)
         return Response(serializer.data)
 
@@ -240,11 +247,27 @@ class RoommateInterestListView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        sent = RoommateInterest.objects.filter(from_user=request.user).select_related(
-            "to_user"
+        sent = (
+            RoommateInterest.objects.filter(from_user=request.user)
+            .select_related("to_user")
+            .order_by("-created_at")
         )
-        received = RoommateInterest.objects.filter(to_user=request.user).select_related(
-            "from_user"
+        received = (
+            RoommateInterest.objects.filter(to_user=request.user)
+            .select_related("from_user")
+            .order_by("-created_at")
+        )
+        sent = apply_limit_offset(
+            sent,
+            request,
+            default_limit=100,
+            max_limit=200,
+        )
+        received = apply_limit_offset(
+            received,
+            request,
+            default_limit=100,
+            max_limit=200,
         )
         return Response(
             {

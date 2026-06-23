@@ -82,7 +82,7 @@ class Command(BaseCommand):
         demo_rp, _ = RoommateProfile.objects.update_or_create(
             user=tenant,
             defaults={
-                "bio": "Demo tenant — open to shared Marina / JLT.",
+                "bio": "Demo tenant - open to shared Marina / JLT.",
                 "budget_min": 2500,
                 "budget_max": 6500,
                 "move_in_date": today,
@@ -213,7 +213,7 @@ class Command(BaseCommand):
                 conversation=conv,
                 sender=landlord,
                 content=(
-                    "Thanks for your interest in the Marina demo unit — happy to arrange a viewing."
+                    "Thanks for your interest in the Marina demo unit - happy to arrange a viewing."
                 ),
             )
 

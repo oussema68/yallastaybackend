@@ -46,7 +46,7 @@ Cross-site scripting (**XSS**), **authorization**, and **SQL injection** are add
 | **Secrets** | Rotation of Stripe, database, JWT signing keys, and webhook secrets on any incident; no secrets in source control. |
 | **Dependencies** | Regular dependency updates and vulnerability monitoring (e.g. `pip audit`, automated PRs). |
 | **Authorization reviews** | Periodic review of **object access by ID** (IDOR), especially for tables **not** covered by RLS; **messaging**, **payments**, and **e-sign** flows rely on application-layer checks. See [`security/auth-hardening-idor-rls.md`](./security/auth-hardening-idor-rls.md). |
-| **Partner / B2B (server-to-server)** | Prefer **OAuth 2.0 client credentials** (token endpoint, scoped bearer access tokens, per-partner clients, rotation)—not a single long-lived shared API key without lifecycle policy. See [`platform/partner-api-authentication.md`](./platform/partner-api-authentication.md). |
+| **Partner / B2B (server-to-server)** | Prefer **OAuth 2.0 client credentials** (token endpoint, scoped bearer access tokens, per-partner clients, rotation)-not a single long-lived shared API key without lifecycle policy. See [`platform/partner-api-authentication.md`](./platform/partner-api-authentication.md). |
 | **Verification flows** | Rate-limited verification, password reset, and OTP; single-use, time-limited tokens. |
 | **HTTP headers (frontend)** | CSP, frame-ancestors / X-Frame-Options, Referrer-Policy - typically configured at CDN or static host. |
 

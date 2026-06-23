@@ -1,6 +1,6 @@
 """
 Gunicorn config. Concurrency is env-tunable so you can scale on Railway WITHOUT code
-changes — set these as service variables and redeploy:
+changes - set these as service variables and redeploy:
 
   WEB_CONCURRENCY            worker processes (default 3). Rule of thumb: ~2x vCPU.
   GUNICORN_THREADS           threads per worker (default 4). Good for I/O-bound DB work.
@@ -10,7 +10,7 @@ changes — set these as service variables and redeploy:
   GUNICORN_MAX_REQUESTS      recycle a worker after N requests to bound memory (default 1000).
 
 Effective concurrent requests per container ≈ workers * threads.
-NOTE: each worker*thread can hold a DB connection — keep workers*threads*replicas
+NOTE: each worker*thread can hold a DB connection - keep workers*threads*replicas
 under your Postgres connection limit (or put PgBouncer in front). See the scaling notes.
 """
 

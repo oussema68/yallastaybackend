@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.permissions import IsUAEIDVerified
+from core.query_window import apply_limit_offset
 from listings.models import ListingImage
 from .models import Conversation, Message
 from .serializers import (
@@ -53,6 +54,12 @@ class ConversationListCreateView(APIView):
             _conversation_queryset()
             .filter(participants=request.user)
             .order_by("-updated_at")
+        )
+        convos = apply_limit_offset(
+            convos,
+            request,
+            default_limit=100,
+            max_limit=200,
         )
         serializer = ConversationSerializer(
             convos, many=True, context={"request": request}
@@ -120,10 +127,27 @@ class ConversationDetailView(APIView):
         return Response(ConversationSerializer(conv, context={"request": request}).data)
 
 
+class ConversationUnreadSummaryView(APIView):
+    """GET: Lightweight unread message counter for header badges."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        unread_messages = (
+            Message.objects.filter(
+                conversation__participants=request.user,
+                read_at__isnull=True,
+            )
+            .exclude(sender=request.user)
+            .count()
+        )
+        return Response({"unread_messages": unread_messages})
+
+
 class MessageListCreateView(APIView):
     """
     GET: List messages in conversation.
-    POST: Send message (UAE ID required for renter inquiries; owner–broker chats allow files).
+    POST: Send message (UAE ID required for renter inquiries; owner-broker chats allow files).
     """
 
     permission_classes = [IsAuthenticated]
@@ -148,7 +172,15 @@ class MessageListCreateView(APIView):
         conv = self.get_conversation(pk)
         if not conv:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        messages = conv.messages.select_related("sender").order_by("created_at")
+        messages = conv.messages.select_related("sender").order_by("-created_at")
+        messages = apply_limit_offset(
+            messages,
+            request,
+            default_limit=200,
+            max_limit=500,
+        )
+        messages = list(messages)
+        messages.reverse()
         msg_data = MessageSerializer(
             messages, many=True, context={"request": request}
         ).data

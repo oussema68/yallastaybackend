@@ -77,7 +77,7 @@ class LifestylePlanBenefit(models.Model):
 
 
 class LifestyleService(models.Model):
-    """Legacy: service row keyed by type (pre–section/benefit CMS). Prefer sections in admin."""
+    """Legacy: service row keyed by type (pre-section/benefit CMS). Prefer sections in admin."""
 
     SERVICE_TYPES = [
         ("cleaning", "Cleaning"),
@@ -179,9 +179,9 @@ class LifestyleSubscriptionPreference(models.Model):
         ("sun", "Sunday"),
     ]
     TIME_WINDOW_CHOICES = [
-        ("morning", "Morning (8am–12pm)"),
-        ("afternoon", "Afternoon (12pm–5pm)"),
-        ("evening", "Evening (5pm–9pm)"),
+        ("morning", "Morning (8am-12pm)"),
+        ("afternoon", "Afternoon (12pm-5pm)"),
+        ("evening", "Evening (5pm-9pm)"),
     ]
 
     subscription = models.OneToOneField(

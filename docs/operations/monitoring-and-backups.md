@@ -46,7 +46,7 @@
 ## Backups
 
 1. **PostgreSQL** (production): use the provider’s **automated backups** (point-in-time recovery if available).  
-2. **Retention**: align with policy (e.g. 7–35 days); **test** restores quarterly.  
+2. **Retention**: align with policy (e.g. 7-35 days); **test** restores quarterly.  
 3. **Secrets**: backup **encryption keys** and **off-site** credential storage separately from DB dumps.  
 4. **Object storage** (e.g. S3 for media): **versioning** + **lifecycle** rules; separate bucket or prefix for **sensitive** documents if required. Configure uploads via env; see [`media-storage-s3.md`](./media-storage-s3.md).
 
