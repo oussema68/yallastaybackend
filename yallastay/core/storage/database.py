@@ -35,7 +35,11 @@ class DatabaseStorage(Storage):
         name = self._normalize_name(name)
         content.seek(0)
         data = content.read()
-        content_type = getattr(content, "content_type", None) or mimetypes.guess_type(name)[0] or ""
+        content_type = (
+            getattr(content, "content_type", None)
+            or mimetypes.guess_type(name)[0]
+            or ""
+        )
         StoredMedia.objects.update_or_create(
             name=name,
             defaults={

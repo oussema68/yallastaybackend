@@ -6,23 +6,34 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0002_postgresql_row_level_security'),
+        ("core", "0002_postgresql_row_level_security"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='StoredMedia',
+            name="StoredMedia",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(db_index=True, max_length=500, unique=True)),
-                ('content', models.BinaryField()),
-                ('content_type', models.CharField(blank=True, default='', max_length=127)),
-                ('size', models.PositiveIntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(db_index=True, max_length=500, unique=True)),
+                ("content", models.BinaryField()),
+                (
+                    "content_type",
+                    models.CharField(blank=True, default="", max_length=127),
+                ),
+                ("size", models.PositiveIntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
     ]
