@@ -11,6 +11,7 @@ from .views import (
     ThrottledTokenRefreshView,
     VerifyEmailView,
 )
+from .overview_views import AccountOverviewView
 from .public_profile_views import PublicUserProfileView
 from .verified_realtors_views import VerifiedRealtorsListView
 
@@ -30,6 +31,7 @@ urlpatterns = [
         name="password_reset_confirm",
     ),
     path("me/", MeView.as_view(), name="me"),
+    path("account-overview/", AccountOverviewView.as_view(), name="account-overview"),
     path(
         "verified-realtors/",
         VerifiedRealtorsListView.as_view(),

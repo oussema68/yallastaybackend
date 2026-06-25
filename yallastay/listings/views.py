@@ -32,6 +32,7 @@ from .assignment import (
 from .emails_assignment import send_owner_invite_email
 from .notifications import notify_owner_invite_sent
 from .owner_invites import OwnerInviteError, accept_listing_owner_invite
+from .images import create_listing_image
 
 LISTING_MAX_IMAGES = 30
 
@@ -64,7 +65,7 @@ def _append_listing_images(listing, files) -> None:
     if max_order is None:
         max_order = -1
     for i, f in enumerate(files):
-        ListingImage.objects.create(listing=listing, image=f, order=max_order + 1 + i)
+        create_listing_image(listing, f, order=max_order + 1 + i)
 
 
 def _sanitize_owner_verification_note(raw) -> str:
@@ -227,15 +228,14 @@ class ListingViewSet(viewsets.ModelViewSet):
         return _public_browse_queryset(qs)
 
     def list(self, request, *args, **kwargs):
-        """Plain array response (unpaginated). Optional ``?limit=N`` caps rows so light
-        callers (e.g. the homepage featured strip) don't fetch every listing."""
+        """Plain array response. Optional ``?limit=N`` (default 40, max 60)."""
         queryset = self.filter_queryset(self.get_queryset())
         limit = request.query_params.get("limit")
-        if limit:
-            try:
-                queryset = queryset[: max(1, min(int(limit), 60))]
-            except (TypeError, ValueError):
-                pass
+        try:
+            cap = max(1, min(int(limit), 60)) if limit else 40
+        except (TypeError, ValueError):
+            cap = 40
+        queryset = queryset[:cap]
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -260,7 +260,7 @@ class ListingViewSet(viewsets.ModelViewSet):
         listing = serializer.save(listed_by=request.user)
         if images:
             for i, f in enumerate(images):
-                ListingImage.objects.create(listing=listing, image=f, order=i)
+                create_listing_image(listing, f, order=i)
         output = ListingSerializer(listing, context={"request": request})
         headers = self.get_success_headers(output.data)
         transaction.on_commit(

@@ -157,6 +157,12 @@ class ListingImage(models.Model):
         Listing, on_delete=models.CASCADE, related_name="images"
     )
     image = models.ImageField(upload_to="listings/")
+    thumbnail = models.ImageField(
+        upload_to="listings/thumbs/",
+        blank=True,
+        null=True,
+        help_text="Smaller JPEG for cards and list views.",
+    )
     order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 

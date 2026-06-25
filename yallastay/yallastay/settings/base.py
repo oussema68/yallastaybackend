@@ -296,6 +296,23 @@ elif USE_DATABASE_MEDIA:
         },
     }
 
+# Listing photo processing (stored in Postgres or S3 after resize)
+LISTING_IMAGE_MAX_WIDTH = env_int(
+    "LISTING_IMAGE_MAX_WIDTH", 1600, min_value=640, max_value=4000
+)
+LISTING_IMAGE_JPEG_QUALITY = env_int(
+    "LISTING_IMAGE_JPEG_QUALITY", 82, min_value=50, max_value=95
+)
+LISTING_IMAGE_MAX_BYTES = env_int(
+    "LISTING_IMAGE_MAX_BYTES", 900_000, min_value=100_000, max_value=5_000_000
+)
+LISTING_THUMB_MAX_WIDTH = env_int(
+    "LISTING_THUMB_MAX_WIDTH", 480, min_value=200, max_value=1200
+)
+LISTING_THUMB_JPEG_QUALITY = env_int(
+    "LISTING_THUMB_JPEG_QUALITY", 78, min_value=50, max_value=95
+)
+
 # URLs (for email links, etc.) - dev/prod modules set required values from .env
 FRONTEND_URL = env_str("FRONTEND_URL")
 BACKEND_URL = env_str("BACKEND_URL")

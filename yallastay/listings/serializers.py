@@ -34,13 +34,19 @@ User = get_user_model()
 class ListingImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ListingImage
-        fields = ["id", "image", "order"]
+        fields = ["id", "image", "thumbnail", "order"]
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         request = self.context.get("request")
-        if ret.get("image") and request:
+        use_thumb = self.context.get("use_image_thumbnails", False)
+        if use_thumb and ret.get("thumbnail") and request:
+            ret["image"] = absolute_media_url(request, instance.thumbnail)
+            ret.pop("thumbnail", None)
+        elif ret.get("image") and request:
             ret["image"] = absolute_media_url(request, instance.image)
+        if ret.get("thumbnail") and request:
+            ret["thumbnail"] = absolute_media_url(request, instance.thumbnail)
         return ret
 
 
@@ -594,11 +600,14 @@ class ListingListSerializer(serializers.ModelSerializer):
 
     def get_first_image(self, obj):
         img = obj.images.first()
-        if img and img.image:
-            request = self.context.get("request")
+        if not img:
+            return None
+        request = self.context.get("request")
+        field = img.thumbnail if img.thumbnail else img.image
+        if field:
             if request:
-                return absolute_media_url(request, img.image)
-            return img.image.url
+                return absolute_media_url(request, field)
+            return field.url
         return None
 
 
