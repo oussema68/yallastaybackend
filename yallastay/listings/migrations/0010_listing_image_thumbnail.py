@@ -6,13 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('listings', '0009_partnership_chat_attachments'),
+        ("listings", "0009_partnership_chat_attachments"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='listingimage',
-            name='thumbnail',
-            field=models.ImageField(blank=True, help_text='Smaller JPEG for cards and list views.', null=True, upload_to='listings/thumbs/'),
+            model_name="listingimage",
+            name="thumbnail",
+            field=models.ImageField(
+                blank=True,
+                help_text="Smaller JPEG for cards and list views.",
+                null=True,
+                upload_to="listings/thumbs/",
+            ),
         ),
     ]

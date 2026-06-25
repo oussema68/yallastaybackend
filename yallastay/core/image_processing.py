@@ -5,7 +5,6 @@ from __future__ import annotations
 import io
 import os
 import uuid
-from typing import BinaryIO
 
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -26,7 +25,9 @@ def _setting(name: str, default):
 def _unique_name(original_name: str, suffix: str) -> str:
     base = os.path.basename(original_name or "upload.jpg")
     stem, _ext = os.path.splitext(base)
-    safe_stem = "".join(c if c.isalnum() or c in "-_" else "-" for c in stem)[:80] or "photo"
+    safe_stem = (
+        "".join(c if c.isalnum() or c in "-_" else "-" for c in stem)[:80] or "photo"
+    )
     return f"{safe_stem}-{uuid.uuid4().hex[:10]}{suffix}"
 
 
@@ -56,7 +57,9 @@ def _fit_jpeg(
     while len(data) > max_bytes and img.width > 640:
         new_w = max(640, int(img.width * 0.85))
         ratio = new_w / img.width
-        img = img.resize((new_w, max(1, int(img.height * ratio))), Image.Resampling.LANCZOS)
+        img = img.resize(
+            (new_w, max(1, int(img.height * ratio))), Image.Resampling.LANCZOS
+        )
         data = _encode_jpeg(img, q)
     return data
 

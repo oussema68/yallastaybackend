@@ -11,14 +11,16 @@ from rest_framework.test import APITestCase
 from accounts.models import LandlordProfile, UserProfile
 from core.image_processing import prepare_listing_image_upload
 from core.models import StoredMedia
-from listings.models import Listing, ListingImage
+from listings.models import Listing
 
 User = get_user_model()
 
 
 def _large_jpeg_upload(name: str = "huge.jpg") -> SimpleUploadedFile:
     buf = BytesIO()
-    Image.new("RGB", (4000, 3000), color=(200, 100, 50)).save(buf, format="JPEG", quality=95)
+    Image.new("RGB", (4000, 3000), color=(200, 100, 50)).save(
+        buf, format="JPEG", quality=95
+    )
     return SimpleUploadedFile(name, buf.getvalue(), content_type="image/jpeg")
 
 
@@ -50,7 +52,9 @@ class ImageProcessingTests(APITestCase):
 
 class AccountOverviewTests(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(email="dash@example.com", password="Pass123!")
+        self.user = User.objects.create_user(
+            email="dash@example.com", password="Pass123!"
+        )
         UserProfile.objects.create(user=self.user, role="landlord")
         LandlordProfile.objects.create(user=self.user, is_approved=True)
 

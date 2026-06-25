@@ -80,8 +80,15 @@ class AccountOverviewView(APIView):
             user=user, read=False
         ).count()
 
-        reservations_qs = Reservation.objects.filter(user=user).select_related(
-            "listing", "listing__area"
+        if role in ("landlord", "realtor"):
+            reservations_qs = Reservation.objects.filter(listing__listed_by=user)
+            viewings_qs = ViewingRequest.objects.filter(listing__listed_by=user)
+        else:
+            reservations_qs = Reservation.objects.filter(user=user)
+            viewings_qs = ViewingRequest.objects.filter(user=user)
+
+        reservations_qs = reservations_qs.select_related(
+            "listing", "listing__area", "listing__listed_by", "user", "lease_signing"
         )
         reservations_qs = apply_limit_offset(
             reservations_qs.order_by("-created_at"),
@@ -93,8 +100,8 @@ class AccountOverviewView(APIView):
             reservations_qs, many=True, context=ctx
         ).data
 
-        viewings_qs = ViewingRequest.objects.filter(user=user).select_related(
-            "listing", "listing__area"
+        viewings_qs = viewings_qs.select_related(
+            "listing", "listing__area", "listing__listed_by", "user"
         )
         viewings_qs = apply_limit_offset(
             viewings_qs.order_by("-created_at"),
@@ -102,9 +109,7 @@ class AccountOverviewView(APIView):
             default_limit=50,
             max_limit=50,
         )
-        viewings = ViewingRequestSerializer(
-            viewings_qs, many=True, context=ctx
-        ).data
+        viewings = ViewingRequestSerializer(viewings_qs, many=True, context=ctx).data
 
         favorites = []
         if role in ("tenant", "student"):
@@ -160,9 +165,7 @@ class AccountOverviewView(APIView):
                 "listed_by",
                 "assigned_realtor__realtor_profile",
             ).prefetch_related("images")[:60]
-            my_listings = ListingListSerializer(
-                mine_qs, many=True, context=ctx
-            ).data
+            my_listings = ListingListSerializer(mine_qs, many=True, context=ctx).data
 
         return Response(
             {

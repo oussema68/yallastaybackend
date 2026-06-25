@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.response import Response
 
 from accounts.permissions import user_has_uae_id_verified
+from core.query_window import apply_limit_offset
 from core.text_sanitize import sanitize_plain_text
 from notifications.services import notify_user
 
@@ -228,14 +229,17 @@ class ListingViewSet(viewsets.ModelViewSet):
         return _public_browse_queryset(qs)
 
     def list(self, request, *args, **kwargs):
-        """Plain array response. Optional ``?limit=N`` (default 40, max 60)."""
+        """Plain array response. Public browse defaults to 40 (max 60); ``?mine=1`` is uncapped unless ``?limit=`` is set."""
         queryset = self.filter_queryset(self.get_queryset())
-        limit = request.query_params.get("limit")
-        try:
-            cap = max(1, min(int(limit), 60)) if limit else 40
-        except (TypeError, ValueError):
-            cap = 40
-        queryset = queryset[:cap]
+        if request.query_params.get("mine"):
+            if request.query_params.get("limit") is not None:
+                queryset = apply_limit_offset(
+                    queryset, request, default_limit=200, max_limit=200
+                )
+        else:
+            queryset = apply_limit_offset(
+                queryset, request, default_limit=40, max_limit=60
+            )
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
