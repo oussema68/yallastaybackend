@@ -252,12 +252,16 @@ MEDIA_ROOT = BASE_DIR / "media"
 # `collectstatic` step was skipped or failed (a common Railway root-directory mistake).
 WHITENOISE_USE_FINDERS = True
 
-# User uploads: local ``media/`` by default; S3 when AWS_STORAGE_BUCKET_NAME is set.
-# The database stores paths/keys only; never raw file bytes in PostgreSQL.
+# User uploads: PostgreSQL blobs by default (Railway/demo); S3 when bucket is configured.
 USE_S3_MEDIA = _use_s3_media()
-# When uploads live on local disk (no S3), the app must serve ``/media/`` itself - WhiteNoise
-# only serves static files and ignores files uploaded after boot (see yallastay/urls.py).
-SERVE_MEDIA_LOCALLY = not USE_S3_MEDIA
+_db_media_raw = (env_str("USE_DATABASE_MEDIA") or "").lower()
+if USE_S3_MEDIA:
+    USE_DATABASE_MEDIA = False
+elif _db_media_raw in ("0", "false", "no"):
+    USE_DATABASE_MEDIA = False
+else:
+    USE_DATABASE_MEDIA = True
+
 if USE_S3_MEDIA:
     _ak = env_str("AWS_ACCESS_KEY_ID")
     _sk = env_str("AWS_SECRET_ACCESS_KEY")
@@ -277,6 +281,15 @@ if USE_S3_MEDIA:
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+elif USE_DATABASE_MEDIA:
+    STORAGES = {
+        "default": {
+            "BACKEND": "core.storage.database.DatabaseStorage",
         },
         "staticfiles": {
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",

@@ -22,7 +22,7 @@ from django.urls import path, include, re_path
 from django.http import JsonResponse
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.static import serve as serve_media
+from core.media_serve import serve_stored_media
 
 
 def api_root(request):
@@ -52,18 +52,13 @@ urlpatterns = [
     path("api/", include("esign.urls")),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-elif getattr(settings, "SERVE_MEDIA_LOCALLY", False):
-    # Production without S3: uploads live on local disk and must be served by the app.
-    # ``static()`` is a no-op when DEBUG is False, and WhiteNoise only serves static files
-    # (it also caches its file list at startup, so it can't serve images uploaded later).
-    # Django's serve view reads from disk per request, so freshly uploaded photos resolve.
+if getattr(settings, "USE_DATABASE_MEDIA", False):
     _media_prefix = re.escape(settings.MEDIA_URL.lstrip("/"))
     urlpatterns += [
         re_path(
             rf"^{_media_prefix}(?P<path>.*)$",
-            serve_media,
-            {"document_root": settings.MEDIA_ROOT},
+            serve_stored_media,
         ),
     ]
+elif settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

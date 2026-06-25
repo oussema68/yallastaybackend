@@ -4,4 +4,4 @@
 # https://docs.railway.com/reference/config-as-code
 
 [deploy]
-releaseCommand = "python manage.py migrate --noinput && python manage.py migrate --check && python manage.py collectstatic --noinput"
+releaseCommand = "python manage.py migrate --noinput && python manage.py migrate --check && python manage.py collectstatic --noinput && mkdir -p media/listings media/documents media/avatars"
