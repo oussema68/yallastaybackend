@@ -520,6 +520,28 @@ class ListingViewSetTests(APITestCase):
         self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("trakheesi_permit_number", r.data)
 
+    def test_upload_images_action(self):
+        self.client.force_authenticate(user=self.user)
+        f1 = _tiny_png_upload("upload1.png")
+        response = self.client.post(
+            f"/api/listings/{self.listing.id}/images/",
+            {"images": [f1]},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data.get("images", [])), 1)
+
+    def test_upload_images_action_accepts_image_singular_field(self):
+        self.client.force_authenticate(user=self.user)
+        f1 = _tiny_png_upload("single.png")
+        response = self.client.post(
+            f"/api/listings/{self.listing.id}/images/",
+            {"image": f1},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data.get("images", [])), 1)
+
     def test_patch_appends_images_multipart(self):
         self.client.force_authenticate(user=self.user)
         ListingImage.objects.create(

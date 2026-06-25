@@ -36,6 +36,37 @@ from .owner_invites import OwnerInviteError, accept_listing_owner_invite
 LISTING_MAX_IMAGES = 30
 
 
+def _image_files_from_request(request) -> list:
+    """Accept common multipart field names (`images`, `image`, `photos`, etc.)."""
+    for key in ("images", "image", "photos", "photo", "files", "file"):
+        files = request.FILES.getlist(key)
+        if files:
+            return files
+        single = request.FILES.get(key)
+        if single:
+            return [single]
+    return []
+
+
+def _user_may_upload_listing_images(user, listing) -> tuple[bool, str | None]:
+    uid = user.id
+    if listing.listed_by_id == uid:
+        return True, None
+    if listing.assigned_realtor_id == uid and listing.listed_by_id != uid:
+        return False, "Only the listing publisher can add or replace photos."
+    if listing.property_owner_id == uid and listing.listed_by_id != uid:
+        return False, "Only the listing publisher can add or replace photos."
+    return False, "Only the listing owner can upload photos."
+
+
+def _append_listing_images(listing, files) -> None:
+    max_order = listing.images.aggregate(m=Max("order"))["m"]
+    if max_order is None:
+        max_order = -1
+    for i, f in enumerate(files):
+        ListingImage.objects.create(listing=listing, image=f, order=max_order + 1 + i)
+
+
 def _sanitize_owner_verification_note(raw) -> str:
     s = (raw or "").strip()
     if not s:
@@ -173,6 +204,7 @@ class ListingViewSet(viewsets.ModelViewSet):
                 "partial_update",
                 "destroy",
                 "delete_image",
+                "upload_images",
                 "interested",
                 "invite_owner",
             ):
@@ -213,7 +245,7 @@ class ListingViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         """Accept JSON or multipart form; optional ``images`` file list (max 30)."""
-        images = request.FILES.getlist("images")
+        images = _image_files_from_request(request)
         if len(images) > LISTING_MAX_IMAGES:
             return Response(
                 {
@@ -226,8 +258,9 @@ class ListingViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         listing = serializer.save(listed_by=request.user)
-        for i, f in enumerate(images):
-            ListingImage.objects.create(listing=listing, image=f, order=i)
+        if images:
+            for i, f in enumerate(images):
+                ListingImage.objects.create(listing=listing, image=f, order=i)
         output = ListingSerializer(listing, context={"request": request})
         headers = self.get_success_headers(output.data)
         transaction.on_commit(
@@ -238,7 +271,7 @@ class ListingViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def partial_update(self, request, *args, **kwargs):
         """JSON or multipart; optional ``images`` file list appends photos (max 30 total)."""
-        images = request.FILES.getlist("images")
+        images = _image_files_from_request(request)
         listing = self.get_object()
         uid = request.user.id
         is_assigned_realtor_only = (
@@ -323,16 +356,60 @@ class ListingViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         listing = serializer.instance
-        max_order = listing.images.aggregate(m=Max("order"))["m"]
-        if max_order is None:
-            max_order = -1
-        for i, f in enumerate(images):
-            ListingImage.objects.create(
-                listing=listing, image=f, order=max_order + 1 + i
-            )
+        if images:
+            _append_listing_images(listing, images)
         listing.refresh_from_db()
         output = ListingSerializer(listing, context={"request": request})
         return Response(output.data)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="images",
+        parser_classes=[MultiPartParser, FormParser],
+        permission_classes=[IsAuthenticated, IsLandlordOrRealtor],
+    )
+    def upload_images(self, request, pk=None):
+        """
+        Upload one or more gallery photos for a listing.
+
+        Multipart field: ``images`` (preferred) or ``image``. JSON bodies cannot carry files.
+        """
+        listing = self.get_object()
+        allowed, detail = _user_may_upload_listing_images(request.user, listing)
+        if not allowed:
+            return Response({"detail": detail}, status=status.HTTP_403_FORBIDDEN)
+
+        files = _image_files_from_request(request)
+        if not files:
+            return Response(
+                {
+                    "images": [
+                        "Send one or more image files as multipart/form-data "
+                        "(field name: images or image)."
+                    ]
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        existing = listing.images.count()
+        if existing + len(files) > LISTING_MAX_IMAGES:
+            return Response(
+                {
+                    "images": [
+                        f"Maximum {LISTING_MAX_IMAGES} images per listing "
+                        f"(have {existing}, adding {len(files)} would exceed the limit)."
+                    ]
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        _append_listing_images(listing, files)
+        listing.refresh_from_db()
+        return Response(
+            ListingSerializer(listing, context={"request": request}).data,
+            status=status.HTTP_200_OK,
+        )
 
     @action(
         detail=True,
