@@ -247,9 +247,18 @@ STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# WhiteNoise serves the Django admin / DRF CSS in production. Falling back to the
+# staticfiles finders means the admin keeps its styling even when a deploy's release
+# `collectstatic` step was skipped or failed (a common Railway root-directory mistake).
+WHITENOISE_USE_FINDERS = True
+
 # User uploads: local ``media/`` by default; S3 when AWS_STORAGE_BUCKET_NAME is set.
 # The database stores paths/keys only; never raw file bytes in PostgreSQL.
-if _use_s3_media():
+USE_S3_MEDIA = _use_s3_media()
+# When uploads live on local disk (no S3), the app must serve ``/media/`` itself - WhiteNoise
+# only serves static files and ignores files uploaded after boot (see yallastay/urls.py).
+SERVE_MEDIA_LOCALLY = not USE_S3_MEDIA
+if USE_S3_MEDIA:
     _ak = env_str("AWS_ACCESS_KEY_ID")
     _sk = env_str("AWS_SECRET_ACCESS_KEY")
     if _ak:
